@@ -1,0 +1,101 @@
+generator client {
+provider = "prisma-client-js"
+}
+
+
+datasource db {
+provider = "sqlite"
+url = env("DATABASE_URL")
+}
+
+
+model Category {
+id Int @id @default(autoincrement())
+name String @unique
+items Item[]
+}
+
+
+model Item {
+  id          Int       @id @default(autoincrement())
+  // Nuovi campi
+  brand       String?   // es. "RCF"
+  model       String?   // es. "ART 912-A"
+  name        String?   // "Nome articolo" (ora facoltativo)
+  typology    String?   // "Tipologia" (es. Diffusore attivo)
+
+  sku         String?   @unique
+  description String?
+  imageUrl    String?
+  quantity    Int       @default(0)
+
+  categoryId  Int
+  category    Category  @relation(fields: [categoryId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  transactions Transaction[]
+}
+
+
+
+model ProductionCheckout {
+id Int @id @default(autoincrement())
+productionName String
+name String
+surname String
+ente String
+email String
+telephone String
+pickupDate DateTime
+restitutionDate DateTime
+techPerson String?
+type TransType @default(CHECKOUT)
+status CheckoutStatus @default(OPEN)
+userId Int?
+user User? @relation(fields: [userId], references: [id])
+transactions Transaction[]
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+id Int @id @default(autoincrement())
+itemId Int
+item Item @relation(fields: [itemId], references: [id])
+productionCheckoutId Int?
+productionCheckout ProductionCheckout? @relation(fields: [productionCheckoutId], references: [id])
+type TransType
+qty Int
+note String?
+createdAt DateTime @default(now())
+}
+
+
+enum TransType {
+CHECKOUT
+CHECKIN
+}
+
+enum CheckoutStatus {
+OPEN
+CLOSED
+}
+
+enum UserRole {
+ADMIN
+TECH
+STANDARD
+}
+
+model User {
+id Int @id @default(autoincrement())
+username String @unique
+password String // hashed
+name String?
+role UserRole @default(STANDARD)
+productionCheckouts ProductionCheckout[]
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+}
