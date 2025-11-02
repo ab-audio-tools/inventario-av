@@ -9,6 +9,7 @@ import autoTable from "jspdf-autotable";
 type Transaction = {
   id: number;
   qty: number;
+  itemId: number;
   item: {
     id: number;
     name: string | null;
@@ -24,6 +25,7 @@ type ProductionCheckout = {
   name: string;
   surname: string;
   transactions: Transaction[];
+  checkins?: { itemId: number; qty: number }[];
 };
 
 type Props = {
@@ -99,25 +101,24 @@ export default function CheckinModal({ checkout, onClose, onComplete }: Props) {
   useEffect(() => {
     setMounted(true);
     // Calcola la quantità rimanente per ogni articolo e mostra solo quelli con quantità > 0
-    setItems(
-      checkout.transactions
-        .map((tx) => {
-          const alreadyCheckedIn = checkout.checkins
-            ? checkout.checkins.filter(c => c.itemId === tx.item.id).reduce((sum, c) => sum + c.qty, 0)
-            : 0;
-          const remainingQty = Math.max(0, tx.qty - alreadyCheckedIn);
-          return remainingQty > 0
-            ? {
-                transactionId: tx.id,
-                itemId: tx.item.id,
-                originalQty: remainingQty, // ora mostra solo la quantità rimanente
-                returnedQty: remainingQty, // default: restituisci tutto quello che manca
-                checked: false,
-              }
-            : null;
-        })
-        .filter(Boolean) // rimuovi gli articoli già restituiti
-    );
+    const mapped = checkout.transactions
+      .map((tx) => {
+        const alreadyCheckedIn =
+          checkout.checkins
+            ?.filter((c) => c.itemId === tx.itemId)
+            .reduce((sum: number, c: { itemId: number; qty: number }) => sum + c.qty, 0) || 0;
+        const remainingQty = Math.max(0, tx.qty - alreadyCheckedIn);
+        if (remainingQty <= 0) return null;
+        return {
+          transactionId: tx.id,
+          itemId: tx.itemId,
+          originalQty: remainingQty,
+          returnedQty: remainingQty,
+          checked: false,
+        } as ItemCheckin;
+      })
+      .filter((x): x is ItemCheckin => x !== null);
+    setItems(mapped);
   }, [checkout]);
 
   useEffect(() => {

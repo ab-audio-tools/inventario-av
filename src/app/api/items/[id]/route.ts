@@ -1,17 +1,92 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
+export async function PATCH(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession();
+  const { id } = await context.params;
+  
+  if (!session || !["ADMIN", "TECH"].includes(session.role)) {
+    return NextResponse.json(
+      { error: "Accesso negato" },
+      { status: 403 }
+    );
+  }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-const id = Number(params.id);
-const data = await req.json();
-const item = await prisma.item.update({ where: { id }, data });
-return NextResponse.json(item);
+  try {
+    const itemId = parseInt(id);
+    if (isNaN(itemId)) {
+      return NextResponse.json(
+        { error: "ID non valido" },
+        { status: 400 }
+      );
+    }
+
+    const data = await req.json();
+    
+    // Validazioni base come in POST
+    const hasBrandModel = !!(data.brand && data.model);
+    const hasName = !!data.name;
+    if (!hasBrandModel && !hasName) {
+      return NextResponse.json(
+        { error: "Fornisci 'name' oppure 'brand' + 'model'." },
+        { status: 400 }
+      );
+    }
+    if (!data.categoryId) {
+      return NextResponse.json(
+        { error: "categoryId mancante." },
+        { status: 400 }
+      );
+    }
+
+    // Verifica esistenza item
+    const exists = await prisma.item.findUnique({
+      where: { id: itemId }
+    });
+    
+    if (!exists) {
+      return NextResponse.json(
+        { error: "Articolo non trovato" },
+        { status: 404 }
+      );
+    }
+
+    // Update con dati validati
+    const item = await prisma.item.update({
+      where: { id: itemId },
+      data: {
+        brand: data.brand || null,
+        model: data.model || null,
+        name: data.name || null,
+        typology: data.typology || null,
+        categoryId: Number(data.categoryId),
+        sku: data.sku || null,
+        quantity: Number(data.quantity) || 0,
+        description: data.description || null,
+        imageUrl: data.imageUrl || null,
+      },
+      include: { category: true },
+    });
+
+    return NextResponse.json({ item });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e.message || "Errore durante l'aggiornamento" },
+      { status: 400 }
+    );
+  }
 }
 
-
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-const id = Number(params.id);
-await prisma.item.delete({ where: { id } });
-return NextResponse.json({ ok: true });
+export async function DELETE(
+  _: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+  const itemId = Number(id);
+  await prisma.item.delete({ where: { id: itemId } });
+  return NextResponse.json({ ok: true });
 }

@@ -205,7 +205,7 @@ export default function ProductionManagerForm({ cart, stockMap }: Props) {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Data e Ora Ritiro <span className="text-red-500">*</span>
+                Data Ritiro <span className="text-red-500">*</span>
               </label>
               <input
                 type="datetime-local"
@@ -217,7 +217,7 @@ export default function ProductionManagerForm({ cart, stockMap }: Props) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
-                Data e Ora Restituzione <span className="text-red-500">*</span>
+                Data Restituzione <span className="text-red-500">*</span>
               </label>
               <input
                 type="datetime-local"

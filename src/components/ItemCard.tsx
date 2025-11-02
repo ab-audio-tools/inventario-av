@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { addToCartMerge, inc, qtyFor, ensureMax, setQty } from "@/lib/cart";
 import { displayTitle } from "@/lib/format";
 import ProductDetailModal from "@/components/ProductDetailModal";
+import ItemEditModal from "@/components/ItemEditModal";
 
 type Item = {
   id: number;
@@ -20,8 +21,20 @@ type Item = {
 export default function ItemCard({ item, viewMode = "grid" }: { item: Item; viewMode?: "grid" | "list" }) {
   const [inCartQty, setInCartQty] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const isGuest = userRole === "GUEST";
+  const canEdit = userRole === "ADMIN" || userRole === "TECH";
 
   useEffect(() => {
+    // load session role for guest checks
+    fetch("/api/auth/session")
+      .then((r) => r.json())
+      .then((d) => {
+        setUserRole(d.user?.role || null);
+      })
+      .catch(() => setUserRole(null));
     const refresh = () => {
       ensureMax(item.id, item.quantity);
       setInCartQty(qtyFor(item.id));
@@ -41,6 +54,7 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
 
   function addOne() {
     if (available <= 0) return;
+    if (isGuest) return; // guests cannot add
     // salva nel carrello il titolo visuale (brand+model o name)
     addToCartMerge(
       { id: item.id, name: title, qty: 1, imageUrl: item.imageUrl },
@@ -48,10 +62,12 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
     );
   }
   function removeOne() {
+    if (isGuest) return;
     if (inCartQty <= 0) return;
     inc(item.id, -1, item.quantity);
   }
   function removeAll() {
+    if (isGuest) return;
     setQty(item.id, 0);
   }
 
@@ -110,6 +126,22 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
             </svg>
           </button>
 
+          {/* Edit icon for Admin/Tech */}
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setIsEditOpen(true)}
+              className="text-zinc-400 hover:text-zinc-600 transition p-1 ml-1"
+              aria-label="Modifica articolo"
+              title="Modifica articolo"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </button>
+          )}
+
           {/* Stock quantity - same style as grid */}
           <span
             className={`text-xs rounded-full border px-2 py-0.5 ${
@@ -119,44 +151,50 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
             {item.quantity} pz
           </span>
 
-          {/* Quantity selector */}
-          <div className="inline-flex items-center border rounded-xl overflow-hidden">
-            <button
-              type="button"
-              onClick={removeOne}
-              disabled={inCartQty <= 0}
-              className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
-              aria-label="Diminuisci"
-            >
-              −
-            </button>
-            <div className="px-3 py-1.5 text-sm w-12 text-center tabular-nums">{inCartQty}</div>
-            <button
-              type="button"
-              onClick={addOne}
-              disabled={available <= 0}
-              className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
-              aria-label="Aumenta"
-              title={available <= 0 ? "Raggiunto lo stock massimo" : "Aumenta di 1"}
-            >
-              +
-            </button>
-          </div>
+          {/* Hide cart info and controls for guests */}
+          {!isGuest && (
+            <>
+              <span className="text-xs text-zinc-500">Nel carrello: {inCartQty}</span>
+              <span className="text-xs text-zinc-500">· Disponibili: {available}</span>
 
-          {/* Remove button - reserved space so it doesn't move other components */}
-          <div className="min-w-[70px] text-right">
-            {inCartQty > 0 && (
-              <button
-                type="button"
-                onClick={removeAll}
-                className="text-sm text-red-600 hover:underline"
-                aria-label="Rimuovi dal carrello"
-                title="Rimuovi dal carrello"
-              >
-                Rimuovi
-              </button>
-            )}
-          </div>
+              <div className="inline-flex items-center border rounded-xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={removeOne}
+                  disabled={inCartQty <= 0}
+                  className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
+                  aria-label="Diminuisci"
+                >
+                  −
+                </button>
+                <div className="px-3 py-1.5 text-sm w-12 text-center tabular-nums">{inCartQty}</div>
+                <button
+                  type="button"
+                  onClick={addOne}
+                  disabled={available <= 0}
+                  className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
+                  aria-label="Aumenta"
+                  title={available <= 0 ? "Raggiunto lo stock massimo" : "Aumenta di 1"}
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="min-w-[70px] text-right">
+                {inCartQty > 0 && (
+                  <button
+                    type="button"
+                    onClick={removeAll}
+                    className="text-sm text-red-600 hover:underline"
+                    aria-label="Rimuovi dal carrello"
+                    title="Rimuovi dal carrello"
+                  >
+                    Rimuovi
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Product Detail Modal */}
@@ -165,6 +203,14 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
+        {/* Edit Modal */}
+        {canEdit && (
+          <ItemEditModal
+            item={item}
+            isOpen={isEditOpen}
+            onClose={() => setIsEditOpen(false)}
+          />
+        )}
       </div>
     );
   }
@@ -218,13 +264,21 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
               </svg>
             </button>
 
-            <span
-              className={`text-xs rounded-full border px-2 py-0.5 ${
-                active ? "text-emerald-700 bg-emerald-100 border-emerald-200" : "text-zinc-600 bg-zinc-50"
-              }`}
-            >
-              {item.quantity} pz
-            </span>
+            {/* Edit icon for Admin/Tech */}
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setIsEditOpen(true)}
+                className="text-zinc-400 hover:text-zinc-600 transition p-1"
+                aria-label="Modifica articolo"
+                title="Modifica articolo"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -234,59 +288,71 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
           {item.category?.name ?? "—"}
         </div>
 
-        {/* stato carrello + disponibili */}
-        <div className="mt-2 text-xs h-5 flex items-center">
-          <span className={active ? "font-medium text-emerald-700" : "text-zinc-500"}>
-            Nel carrello: {inCartQty}
-          </span>
-          <span className="text-zinc-500 ml-1">· Disponibili: {available}</span>
-        </div>
-
-        {/* controlli quantità */}
-        <div className="mt-3 flex items-center gap-3">
-          <div className="inline-flex items-center border rounded-xl overflow-hidden">
-            <button
-              type="button"
-              onClick={removeOne}
-              disabled={inCartQty <= 0}
-              className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
-              aria-label="Diminuisci"
-            >
-              −
-            </button>
-            <div className="px-3 py-1.5 text-sm w-12 text-center tabular-nums">{inCartQty}</div>
-            <button
-              type="button"
-              onClick={addOne}
-              disabled={available <= 0}
-              className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
-              aria-label="Aumenta"
-              title={available <= 0 ? "Raggiunto lo stock massimo" : "Aumenta di 1"}
-            >
-              +
-            </button>
+        {/* stato carrello + disponibili (nascosto per guest) */}
+        {!isGuest && (
+          <div className="mt-2 text-xs h-5 flex items-center">
+            <span className={active ? "font-medium text-emerald-700" : "text-zinc-500"}>
+              Nel carrello: {inCartQty}
+            </span>
+            <span className="text-zinc-500 ml-1">· Disponibili: {available}</span>
           </div>
+        )}
 
-          {inCartQty > 0 && (
-            <button
-              type="button"
-              onClick={removeAll}
-              className="text-sm text-red-600 hover:underline"
-              aria-label="Rimuovi dal carrello"
-              title="Rimuovi dal carrello"
-            >
-              Rimuovi
-            </button>
-          )}
-        </div>
+        {/* controlli quantità (nascosti per guest) */}
+        {!isGuest && (
+          <div className="mt-3 flex items-center gap-3">
+            <div className="inline-flex items-center border rounded-xl overflow-hidden">
+              <button
+                type="button"
+                onClick={removeOne}
+                disabled={inCartQty <= 0}
+                className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
+                aria-label="Diminuisci"
+              >
+                −
+              </button>
+              <div className="px-3 py-1.5 text-sm w-12 text-center tabular-nums">{inCartQty}</div>
+              <button
+                type="button"
+                onClick={addOne}
+                disabled={available <= 0}
+                className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
+                aria-label="Aumenta"
+                title={available <= 0 ? "Raggiunto lo stock massimo" : "Aumenta di 1"}
+              >
+                +
+              </button>
+            </div>
 
-        {/* Product Detail Modal */}
-        <ProductDetailModal
-          item={item}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
+            {inCartQty > 0 && (
+              <button
+                type="button"
+                onClick={removeAll}
+                className="text-sm text-red-600 hover:underline"
+                aria-label="Rimuovi dal carrello"
+                title="Rimuovi dal carrello"
+              >
+                Rimuovi
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        item={item}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+      {/* Edit Modal */}
+      {canEdit && (
+        <ItemEditModal
+          item={item}
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+        />
+      )}
     </div>
   );
 }

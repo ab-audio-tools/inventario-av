@@ -89,9 +89,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: e.message }, { status: 400 });
   }
 
-  const rows = results.map(r =>
-    `<tr><td>${r.item.name}</td><td>${r.tr.qty}</td><td>${r.newQty}</td></tr>`
-  ).join("");
+  const rows = results
+    .map((r) =>
+      `<tr><td>${r.item.name}</td><td>${r.tr.qty}</td><td>${r.newQty}</td></tr>`
+    )
+    .join("");
 
   let html = `
     <p>Operazione: <b>${type}</b></p>
@@ -110,8 +112,8 @@ export async function POST(req: Request) {
       <p><b>Ente:</b> ${productionData.ente}</p>
       <p><b>Email:</b> ${productionData.email}</p>
       <p><b>Telefono:</b> ${productionData.telephone}</p>
-      <p><b>Data Ritiro:</b> ${new Date(productionData.pickupDate).toLocaleDateString("it-IT")}</p>
-      <p><b>Data Restituzione:</b> ${new Date(productionData.restitutionDate).toLocaleDateString("it-IT")}</p>
+      <p><b>Data Ritiro:</b> ${new Date(productionData.pickupDate).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" })}</p>
+      <p><b>Data Restituzione:</b> ${new Date(productionData.restitutionDate).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" })}</p>
       ${productionData.techPerson ? `<p><b>Tecnico:</b> ${productionData.techPerson}</p>` : ""}
     `;
   }

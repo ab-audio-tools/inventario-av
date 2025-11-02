@@ -9,6 +9,7 @@ import { displayTitle } from "@/lib/format";
 type Transaction = {
   id: number;
   qty: number;
+  itemId: number;
   item: {
     id: number;
     name: string | null;
@@ -28,6 +29,7 @@ type ProductionCheckout = {
   restitutionDate: string;
   status: "OPEN" | "CLOSED";
   transactions: Transaction[];
+  checkins?: { itemId: number; qty: number }[];
 };
 
 export default function CheckinList() {
@@ -93,8 +95,10 @@ export default function CheckinList() {
     // Items Table
     const tableData = checkout.transactions.map((t) => {
       // Calcola la quantità già restituita per questo item
-      const checkedInQty = checkout.checkins?.filter(c => c.itemId === t.itemId)
-        .reduce((sum, c) => sum + c.qty, 0) || 0;
+      const checkedInQty =
+        checkout.checkins
+          ?.filter((c: { itemId: number; qty: number }) => c.itemId === t.itemId)
+          .reduce((sum: number, c: { itemId: number; qty: number }) => sum + c.qty, 0) || 0;
       
       const remainingQty = t.qty - checkedInQty;
       const title = displayTitle(t.item);
