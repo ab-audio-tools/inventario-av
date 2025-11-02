@@ -27,7 +27,7 @@ npm -v
 
 ### 1) Clona e installa
 ```bash
-git clone <REPO_URL>
+git clone https://github.com/ab-audio-tools/inventario-av.git
 cd inventario-av
 npm ci   # oppure: npm install
 ```
