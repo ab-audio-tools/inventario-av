@@ -116,6 +116,6 @@ guest:guest123
 2) [x] Aggiungere orario nel production manager checkout e relative modifiche nel DB
 3) [x] Aggiungere ricevuta pdf dopo il check-in per ogni operazione di check-in (completa o incompleta)
 4) [x] Correggere bug che non scala correttamente i check-in incompleti ma duplica l'articolo con la quantità totale richiesta al checkout e lo stesso articolo nella quantità rimasta
-5) [ ] Modifica articolo (aggiungere matitina vicino a i cerchiata) per modificare l'articolo e le sue caratteristiche
+5) [x] Modifica articolo (aggiungere matitina vicino a i cerchiata) per modificare l'articolo e le sue caratteristiche
 6) [ ] Setup per produzione
 7) [ ] Branding e Styling
