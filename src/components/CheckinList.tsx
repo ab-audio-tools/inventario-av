@@ -71,7 +71,7 @@ export default function CheckinList() {
 
     // Title
     doc.setFontSize(18);
-    doc.text("Ricevuta Check-in", 14, 20);
+    doc.text("Stato Check-in", 14, 20);
 
     // Production Info
     doc.setFontSize(12);
