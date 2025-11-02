@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     await setSession({
       id: user.id,
       username: user.username,
-      role: user.role as "ADMIN" | "TECH" | "STANDARD",
+      role: user.role as "ADMIN" | "TECH" | "STANDARD" | "OFFICE" | "GUEST",
     });
 
     return NextResponse.json({

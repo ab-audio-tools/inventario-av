@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Inventario
 
-## Getting Started
+## Stack
+- **Next.js** + **React** + **TypeScript**
+- **Prisma** (DB di sviluppo SQLite; compatibile con Postgres/MySQL in produzione)
+- **Tailwind CSS**
+- Tooling: ESLint, PostCSS
+- Script utili: Prisma Studio, seed
 
-First, run the development server:
+---
+
+## 🧰 Prerequisiti
+
+Assicurati di avere installato:
+
+- [Node.js ≥ 18.17](https://nodejs.org/)
+- [npm ≥ 9](https://www.npmjs.com/)
+- (Facoltativo) [Git](https://git-scm.com/) per clonare il repository
+
+Verifica la versione:
+```bash
+node -v
+npm -v
+```
+---
+## Setup MacOS
+
+### 1) Clona e installa
+```bash
+git clone <REPO_URL>
+cd inventario-av
+npm ci   # oppure: npm install
+```
+### 2) Variabili d'ambiente
+
+```bash
+cp .env.example .env
+```
+### 3) Database & Prisma
+Genera client e crea/tieni allineato lo schema:
+
+```bash
+npx prisma generate --schema=prisma/schema.prisma
+DATABASE_URL="file:./dev.db" npx prisma migrate dev --name init --schema=prisma/schema.prisma
+npm run seed
+```
+
+### 4) Avvia 
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Mantieni aperto il terminale e visita [https://localhost:3000](https://localhost:3000)
+Per gestire il database, in un nuovo terminale usa:
+```bash
+npx prisma studio
+```
+e visita il link che stampa (di solito localhost:5555 o di solito localhost:5556)
+
+---
+## Setup Windows
+
+### 1) Clona e installa
+```powershell
+git clone <REPO_URL>
+Set-Location inventario-av
+npm ci   # oppure: npm install
+```
+### 2) Variabili d'ambiente
+
+```powershell
+Copy-Item .env.example .env
+```
+### 3) Database & Prisma
+Genera client e crea/tieni allineato lo schema:
+
+```powershell
+npx prisma generate --schema=prisma/schema.prisma
+$env:DATABASE_URL="file:./dev.db"; npx prisma migrate dev --name init --schema=prisma/schema.prisma
+npm run seed
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 4) Avvia 
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+npm run dev
+```
+Mantieni aperto il terminale e visita [https://localhost:3000](https://localhost:3000)
+Per gestire il database, in un nuovo terminale usa:
+```powershell
+npx prisma studio
+```
+e visita il link che stampa (di solito localhost:5555 o di solito localhost:5556)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+### Roadmap
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1) [x] Definire user case:
+    - "admin" può fare tutto
+    - "tech" può fare tutto tranne gestire utenti e check-in
+    - "user" può semplicemente creare un movimento e vedere lo storico dei suoi movimenti
+    - "uffici" stessi permessi di user + funzione di solo export
+    - "guest" può solo vedere la home, senza possibilità di avere accesso al carrello e/o fare movimenti e/o scegliere quantità
+  
+2) [x] Aggiungere orario nel production manager checkout e relative modifiche nel DB
+3) [x] Aggiungere ricevuta pdf dopo il check-in per ogni operazione di check-in (completa o incompleta)
+4) [x] Correggere bug che non scala correttamente i check-in incompleti ma duplica l'articolo con la quantità totale richiesta al checkout e lo stesso articolo nella quantità rimasta
+5) [ ] Modifica articolo (aggiungere matitina vicino a i cerchiata) per modificare l'articolo e le sue caratteristiche
+6) [ ] Setup per produzione
+7) [ ] Branding e Styling

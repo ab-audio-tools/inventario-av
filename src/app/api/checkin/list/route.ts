@@ -13,6 +13,7 @@ export async function GET() {
   }
 
   try {
+    // Usa solo la relazione "transactions" con filtro per tipo CHECKOUT e CHECKIN
     const productionCheckouts = await prisma.productionCheckout.findMany({
       where: {
         status: "OPEN",
@@ -31,11 +32,28 @@ export async function GET() {
             },
           },
         },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          }
+        }
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ checkouts: productionCheckouts });
+    // Separa le transazioni di tipo CHECKOUT e CHECKIN per il frontend
+    const checkouts = productionCheckouts.map((checkout) => ({
+      ...checkout,
+      transactions: checkout.transactions.filter(t => t.type === "CHECKOUT"),
+      checkins: checkout.transactions.filter(t => t.type === "CHECKIN").map(t => ({
+        itemId: t.itemId,
+        qty: t.qty,
+      })),
+    }));
+
+    return NextResponse.json({ checkouts });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || "Errore nel caricamento check-in" },

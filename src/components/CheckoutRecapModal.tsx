@@ -79,9 +79,9 @@ export default function CheckoutRecapModal({ isOpen, onClose, data }: Props) {
     yPos += 6;
     doc.text(`Telefono: ${data.telephone}`, 14, yPos);
     yPos += 6;
-    doc.text(`Data Ritiro: ${new Date(data.pickupDate).toLocaleDateString("it-IT")}`, 14, yPos);
+    doc.text(`Data e Ora Ritiro: ${new Date(data.pickupDate).toLocaleString("it-IT", { dateStyle: 'short', timeStyle: 'short' })}`, 14, yPos);
     yPos += 6;
-    doc.text(`Data Restituzione: ${new Date(data.restitutionDate).toLocaleDateString("it-IT")}`, 14, yPos);
+    doc.text(`Data e Ora Restituzione: ${new Date(data.restitutionDate).toLocaleString("it-IT", { dateStyle: 'short', timeStyle: 'short' })}`, 14, yPos);
     if (data.techPerson) {
       yPos += 6;
       doc.text(`Tecnico: ${data.techPerson}`, 14, yPos);
@@ -178,15 +178,21 @@ export default function CheckoutRecapModal({ isOpen, onClose, data }: Props) {
                 <span className="font-medium">{data.telephone}</span>
               </div>
               <div>
-                <span className="text-zinc-500">Data Ritiro:</span>{" "}
+                <span className="text-zinc-500">Data e Ora Ritiro:</span>{" "}
                 <span className="font-medium">
-                  {new Date(data.pickupDate).toLocaleDateString("it-IT")}
+                  {new Date(data.pickupDate).toLocaleString("it-IT", {
+                    dateStyle: 'short',
+                    timeStyle: 'short'
+                  })}
                 </span>
               </div>
               <div>
-                <span className="text-zinc-500">Data Restituzione:</span>{" "}
+                <span className="text-zinc-500">Data e Ora Restituzione:</span>{" "}
                 <span className="font-medium">
-                  {new Date(data.restitutionDate).toLocaleDateString("it-IT")}
+                  {new Date(data.restitutionDate).toLocaleString("it-IT", {
+                    dateStyle: 'short',
+                    timeStyle: 'short'
+                  })}
                 </span>
               </div>
               {data.techPerson && (

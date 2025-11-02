@@ -62,13 +62,13 @@ export default function TransactionCard({ checkout }: Props) {
     doc.text(`Telefono: ${checkout.telephone}`, 14, yPos);
     yPos += 6;
     doc.text(
-      `Data Ritiro: ${new Date(checkout.pickupDate).toLocaleDateString("it-IT")}`,
+      `Data e Ora Ritiro: ${new Date(checkout.pickupDate).toLocaleString("it-IT")}`,
       14,
       yPos
     );
     yPos += 6;
     doc.text(
-      `Data Restituzione: ${new Date(checkout.restitutionDate).toLocaleDateString("it-IT")}`,
+      `Data e Ora Restituzione: ${new Date(checkout.restitutionDate).toLocaleString("it-IT")}`,
       14,
       yPos
     );

@@ -87,6 +87,8 @@ enum UserRole {
 ADMIN
 TECH
 STANDARD
+OFFICE
+GUEST
 }
 
 model User {

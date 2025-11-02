@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession, canAccessImportExport } from "@/lib/auth";
+import { getSession, canImport } from "@/lib/auth";
 
 export async function POST(req: Request) {
   const session = await getSession();
   
-  if (!session || !canAccessImportExport(session.role)) {
+  if (!session || !canImport(session.role)) {
     return NextResponse.json(
       { error: "Accesso negato" },
       { status: 403 }

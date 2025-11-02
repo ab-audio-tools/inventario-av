@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { displayTitle } from "@/lib/format";
+import jsPDF from "jspdf";
+// @ts-ignore
+import autoTable from "jspdf-autotable";
 
 type Transaction = {
   id: number;
@@ -37,6 +40,56 @@ type ItemCheckin = {
   checked: boolean;
 };
 
+function generateCheckinPDF(checkout: ProductionCheckout, checkedItems: ItemCheckin[]) {
+  const doc = new jsPDF();
+
+  // Title
+  doc.setFontSize(18);
+  doc.text("Ricevuta Check-in", 14, 20);
+
+  // Production Info
+  doc.setFontSize(12);
+  doc.text("Dati Produzione", 14, 35);
+  doc.setFontSize(10);
+  let yPos = 42;
+
+  doc.text(`Produzione: ${checkout.productionName}`, 14, yPos);
+  yPos += 6;
+  doc.text(`Responsabile: ${checkout.name} ${checkout.surname}`, 14, yPos);
+  yPos += 10;
+
+  // Items Table
+  const tableData = checkedItems.map((item) => {
+    const transaction = checkout.transactions.find((t) => t.id === item.transactionId);
+    const title = transaction ? displayTitle(transaction.item) : "—";
+    return [
+      title,
+      item.originalQty.toString(),
+      item.returnedQty.toString(),
+      item.originalQty === item.returnedQty ? "Completo" : "Parziale"
+    ];
+  });
+
+  autoTable(doc, {
+    startY: yPos,
+    head: [["Articolo", "Qty Originale", "Qty Restituita", "Stato"]],
+    body: tableData,
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [0, 0, 0] },
+  });
+
+  // Footer
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 40;
+  doc.setFontSize(8);
+  doc.text(
+    `Check-in effettuato il ${new Date().toLocaleString("it-IT")}`,
+    14,
+    finalY + 10
+  );
+
+  return doc;
+}
+
 export default function CheckinModal({ checkout, onClose, onComplete }: Props) {
   const [mounted, setMounted] = useState(false);
   const [items, setItems] = useState<ItemCheckin[]>([]);
@@ -45,15 +98,25 @@ export default function CheckinModal({ checkout, onClose, onComplete }: Props) {
 
   useEffect(() => {
     setMounted(true);
-    // Initialize items from checkout transactions
+    // Calcola la quantità rimanente per ogni articolo e mostra solo quelli con quantità > 0
     setItems(
-      checkout.transactions.map((tx) => ({
-        transactionId: tx.id,
-        itemId: tx.item.id,
-        originalQty: tx.qty,
-        returnedQty: tx.qty, // Default to full return
-        checked: false,
-      }))
+      checkout.transactions
+        .map((tx) => {
+          const alreadyCheckedIn = checkout.checkins
+            ? checkout.checkins.filter(c => c.itemId === tx.item.id).reduce((sum, c) => sum + c.qty, 0)
+            : 0;
+          const remainingQty = Math.max(0, tx.qty - alreadyCheckedIn);
+          return remainingQty > 0
+            ? {
+                transactionId: tx.id,
+                itemId: tx.item.id,
+                originalQty: remainingQty, // ora mostra solo la quantità rimanente
+                returnedQty: remainingQty, // default: restituisci tutto quello che manca
+                checked: false,
+              }
+            : null;
+        })
+        .filter(Boolean) // rimuovi gli articoli già restituiti
     );
   }, [checkout]);
 
@@ -125,6 +188,10 @@ export default function CheckinModal({ checkout, onClose, onComplete }: Props) {
         setLoading(false);
         return;
       }
+
+      // Generate and download PDF
+      const doc = generateCheckinPDF(checkout, checkedItems);
+      doc.save(`checkin_${checkout.productionName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`);
 
       // Success - close modal and reload
       onComplete();
@@ -219,7 +286,7 @@ export default function CheckinModal({ checkout, onClose, onComplete }: Props) {
                     />
                   </th>
                   <th className="text-left p-3">Articolo</th>
-                  <th className="text-right p-3">Quantità Originaria</th>
+                  <th className="text-right p-3">Quantità da restituire</th>
                   <th className="text-right p-3">Quantità Restituita</th>
                 </tr>
               </thead>
@@ -282,7 +349,7 @@ export default function CheckinModal({ checkout, onClose, onComplete }: Props) {
               disabled={loading || !items.some((item) => item.checked)}
               className="px-6 py-2 rounded-xl bg-black text-white hover:opacity-90 transition disabled:opacity-40"
             >
-              {loading ? "Elaborazione..." : "Processa Check-in"}
+              {loading ? "Elaborazione..." : "Processa Check-in e Genera Ricevuta"}
             </button>
           </div>
         </div>

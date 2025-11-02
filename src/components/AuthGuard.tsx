@@ -6,12 +6,12 @@ import PageFade from "./PageFade";
 type User = {
   id: number;
   username: string;
-  role: "ADMIN" | "TECH" | "STANDARD";
+  role: "ADMIN" | "TECH" | "STANDARD" | "OFFICE" | "GUEST";
 } | null;
 
 type Props = {
   children: React.ReactNode;
-  requiredRole?: "ADMIN" | "TECH" | "STANDARD";
+  requiredRole?: "ADMIN" | "TECH" | "STANDARD" | "OFFICE" | "GUEST";
 };
 
 export default function AuthGuard({ children, requiredRole }: Props) {
@@ -34,12 +34,15 @@ export default function AuthGuard({ children, requiredRole }: Props) {
         // Check role if required
         if (requiredRole) {
           const roleHierarchy: Record<string, number> = {
+            GUEST: 0,
             STANDARD: 1,
+            OFFICE: 1, // uffici = stessi permessi di STANDARD (ma possono export)
             TECH: 2,
             ADMIN: 3,
           };
 
-          if (roleHierarchy[data.user.role] < roleHierarchy[requiredRole]) {
+          // Se ruolo dell'utente non raggiunge quello richiesto, redirect
+          if ((roleHierarchy as any)[data.user.role] < (roleHierarchy as any)[requiredRole]) {
             router.push("/");
             return;
           }

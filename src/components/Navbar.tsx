@@ -38,8 +38,10 @@ export default function Navbar() {
   }, []);
 
   const canAccessNewItem = user?.role === "ADMIN" || user?.role === "TECH";
-  const canAccessTransactions = true; // All logged-in users can access, but see filtered results
-  const canAccessImportExport = user?.role === "ADMIN" || user?.role === "TECH";
+  const canAccessTransactions = !!user && user.role !== "GUEST"; // i guest non vedono Movimenti
+  const canAccessImportExport = user?.role === "ADMIN" || user?.role === "TECH" || user?.role === "OFFICE";
+
+  const showCart = !!user && user.role !== "GUEST";
 
   return (
     <StickyHeader>
@@ -49,7 +51,7 @@ export default function Navbar() {
           {canAccessNewItem && (
             <Link href="/items/new" className="text-sm text-zinc-700 hover:text-black transition">Nuovo articolo</Link>
           )}
-          {user && (
+          {canAccessTransactions && (
             <Link href="/transactions" className="text-sm text-zinc-700 hover:text-black transition">Movimenti</Link>
           )}
           {canAccessImportExport && <ImportExportDropdown />}
@@ -61,7 +63,7 @@ export default function Navbar() {
           )}
         </div>
         <div className="ml-auto flex items-center gap-3">
-          <CartBadge />
+          {showCart && <CartBadge />}
           {!loading && <UserMenu />}
         </div>
       </nav>

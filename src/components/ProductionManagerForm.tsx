@@ -11,7 +11,7 @@ type ProductionData = {
   ente: string;
   email: string;
   telephone: string;
-  pickupDate: string;
+  pickupDate: string; // ora sarà in formato "2024-01-01T09:00"
   restitutionDate: string;
   techPerson: string;
   tosAccepted: boolean;
@@ -205,10 +205,10 @@ export default function ProductionManagerForm({ cart, stockMap }: Props) {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Data Ritiro <span className="text-red-500">*</span>
+                Data e Ora Ritiro <span className="text-red-500">*</span>
               </label>
               <input
-                type="date"
+                type="datetime-local"
                 required
                 value={form.pickupDate}
                 onChange={(e) => setForm({ ...form, pickupDate: e.target.value })}
@@ -217,10 +217,10 @@ export default function ProductionManagerForm({ cart, stockMap }: Props) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
-                Data Restituzione <span className="text-red-500">*</span>
+                Data e Ora Restituzione <span className="text-red-500">*</span>
               </label>
               <input
-                type="date"
+                type="datetime-local"
                 required
                 value={form.restitutionDate}
                 onChange={(e) => setForm({ ...form, restitutionDate: e.target.value })}

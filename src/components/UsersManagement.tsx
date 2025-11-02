@@ -5,7 +5,7 @@ type User = {
   id: number;
   username: string;
   name: string | null;
-  role: "ADMIN" | "TECH" | "STANDARD";
+  role: "ADMIN" | "TECH" | "STANDARD" | "OFFICE" | "GUEST";
 };
 
 export default function UsersManagement() {
@@ -16,7 +16,7 @@ export default function UsersManagement() {
     name: "",
     username: "",
     password: "",
-    role: "STANDARD" as "ADMIN" | "TECH" | "STANDARD",
+    role: "STANDARD" as "ADMIN" | "TECH" | "STANDARD" | "OFFICE" | "GUEST",
   });
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
@@ -168,6 +168,8 @@ export default function UsersManagement() {
     ADMIN: "Admin",
     TECH: "Tecnico",
     STANDARD: "Standard",
+    OFFICE: "Uffici",
+    GUEST: "Guest",
   };
 
   if (loading) {
@@ -228,6 +230,8 @@ export default function UsersManagement() {
               <option value="STANDARD">Standard</option>
               <option value="TECH">Tecnico</option>
               <option value="ADMIN">Admin</option>
+              <option value="OFFICE">Uffici</option>
+              <option value="GUEST">Guest</option>
             </select>
           </div>
         </div>
@@ -285,6 +289,8 @@ export default function UsersManagement() {
                         <option value="STANDARD">Standard</option>
                         <option value="TECH">Tecnico</option>
                         <option value="ADMIN">Admin</option>
+                        <option value="OFFICE">Uffici</option>
+                        <option value="GUEST">Guest</option>
                       </select>
                     </td>
                     <td className="p-3 text-right space-x-2">

@@ -43,7 +43,33 @@ async function main() {
     },
   });
 
-  console.log("Users created:", { admin, tech, standard });
+  // Create default office user (uffici)
+  const officePassword = await bcrypt.hash("office123", 10);
+  
+  const office = await prisma.user.upsert({
+    where: { username: "office" },
+    update: {},
+    create: {
+      username: "office",
+      password: officePassword,
+      role: UserRole.OFFICE,
+    },
+  });
+
+  // Create default guest user
+  const guestPassword = await bcrypt.hash("guest123", 10);
+  
+  const guest = await prisma.user.upsert({
+    where: { username: "guest" },
+    update: {},
+    create: {
+      username: "guest",
+      password: guestPassword,
+      role: UserRole.GUEST,
+    },
+  });
+
+  console.log("Users created:", { admin, tech, standard, office, guest });
 }
 
 main()

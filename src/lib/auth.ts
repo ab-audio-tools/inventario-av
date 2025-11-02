@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 
-export type UserRole = "ADMIN" | "TECH" | "STANDARD";
+export type UserRole = "ADMIN" | "TECH" | "STANDARD" | "OFFICE" | "GUEST";
 
 export interface SessionUser {
   id: number;
@@ -54,7 +54,9 @@ export async function clearSession(): Promise<void> {
 
 export function hasAccess(userRole: UserRole, requiredRole: UserRole): boolean {
   const roleHierarchy: Record<UserRole, number> = {
+    GUEST: 0,
     STANDARD: 1,
+    OFFICE: 1, // uffici = stessi permessi di STANDARD
     TECH: 2,
     ADMIN: 3,
   };
@@ -62,13 +64,23 @@ export function hasAccess(userRole: UserRole, requiredRole: UserRole): boolean {
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
 }
 
+// Compatibilità: import permettono solo ADMIN/TECH
+export function canImport(role: UserRole): boolean {
+  return role === "ADMIN" || role === "TECH";
+}
+
+// Export: ADMIN, TECH e OFFICE possono esportare (uffici solo export)
+export function canExport(role: UserRole): boolean {
+  return role === "ADMIN" || role === "TECH" || role === "OFFICE";
+}
+
+// Mantieni una funzione vecchia compatibilità (se usata altrove)
+export function canAccessImportExport(role: UserRole): boolean {
+  return canImport(role); // precedente comportamento (import/export reserved a ADMIN/TECH)
+}
+
 // Check if user can access transactions (only ADMIN)
 export function canAccessTransactions(role: UserRole): boolean {
   return role === "ADMIN";
-}
-
-// Check if user can access import/export (ADMIN and TECH)
-export function canAccessImportExport(role: UserRole): boolean {
-  return role === "ADMIN" || role === "TECH";
 }
 

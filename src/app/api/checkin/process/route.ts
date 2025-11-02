@@ -38,23 +38,44 @@ export async function POST(req: Request) {
     }
 
     await prisma.$transaction(async (tx) => {
+      // Get current state of check-ins for this checkout
+      const existingCheckins = await tx.transaction.findMany({
+        where: {
+          productionCheckoutId: checkoutId,
+          type: "CHECKIN",
+        },
+      });
+
       // Process each returned item
       for (const item of items) {
-        const transaction = checkout.transactions.find(
+        // Get original checkout transaction and existing check-ins
+        const checkoutTx = checkout.transactions.find(
           (t) => t.id === item.transactionId && t.itemId === item.itemId
         );
 
-        if (!transaction) {
+        if (!checkoutTx) {
           throw new Error(`Transazione ${item.transactionId} non trovata`);
         }
 
-        if (item.qty > transaction.qty) {
+        // Get all check-ins for this specific item in this checkout
+        const itemCheckins = await tx.transaction.findMany({
+          where: {
+            productionCheckoutId: checkoutId,
+            itemId: item.itemId,
+            type: "CHECKIN"
+          }
+        });
+
+        const alreadyCheckedIn = itemCheckins.reduce((sum, t) => sum + t.qty, 0);
+        const remainingToCheckin = checkoutTx.qty - alreadyCheckedIn;
+
+        if (item.qty > remainingToCheckin) {
           throw new Error(
-            `Quantità restituita (${item.qty}) superiore a quella prelevata (${transaction.qty})`
+            `Quantità restituita (${item.qty}) superiore a quella rimanente da restituire (${remainingToCheckin})`
           );
         }
 
-        // Restore quantity to item
+        // Restore quantity to inventory item
         const dbItem = await tx.item.findUnique({
           where: { id: item.itemId },
         });
@@ -77,49 +98,35 @@ export async function POST(req: Request) {
             itemId: item.itemId,
             type: "CHECKIN",
             qty: item.qty,
-            note: `Check-in da produzione: ${checkout.productionName}`,
+            note: `Check-in parziale da produzione: ${checkout.productionName} (${item.qty}/${checkoutTx.qty})`,
             productionCheckoutId: checkoutId,
           },
         });
       }
 
-      // Check if all items have been fully returned
-      // Get all CHECKOUT transactions for this checkout
-      const checkoutTransactions = await tx.transaction.findMany({
+      // Verifica se tutti gli articoli sono stati completamente restituiti
+      const allCheckouts = await tx.transaction.findMany({
         where: {
           productionCheckoutId: checkoutId,
           type: "CHECKOUT",
         },
       });
 
-      // Get all CHECKIN transactions for this checkout (including the ones we just created)
-      const checkinTransactions = await tx.transaction.findMany({
+      const allCheckins = await tx.transaction.findMany({
         where: {
           productionCheckoutId: checkoutId,
           type: "CHECKIN",
         },
       });
 
-      // Calculate total quantities by item
-      const checkoutByItem: Record<number, number> = {};
-      const checkinByItem: Record<number, number> = {};
-
-      checkoutTransactions.forEach((t) => {
-        checkoutByItem[t.itemId] = (checkoutByItem[t.itemId] || 0) + t.qty;
+      const isComplete = allCheckouts.every(checkout => {
+        const totalCheckedIn = allCheckins
+          .filter(checkin => checkin.itemId === checkout.itemId)
+          .reduce((sum, checkin) => sum + checkin.qty, 0);
+        return totalCheckedIn >= checkout.qty;
       });
 
-      checkinTransactions.forEach((t) => {
-        checkinByItem[t.itemId] = (checkinByItem[t.itemId] || 0) + t.qty;
-      });
-
-      // Check if all items have been fully returned
-      const allItemsReturned = Object.keys(checkoutByItem).every(
-        (itemId) =>
-          checkinByItem[Number(itemId)] >= checkoutByItem[Number(itemId)]
-      );
-
-      // If all items fully returned, close the checkout
-      if (allItemsReturned) {
+      if (isComplete) {
         await tx.productionCheckout.update({
           where: { id: checkoutId },
           data: { status: "CLOSED" },

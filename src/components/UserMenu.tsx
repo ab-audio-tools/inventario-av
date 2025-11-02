@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 type User = {
   id: number;
   username: string;
-  role: "ADMIN" | "TECH" | "STANDARD";
+  role: "ADMIN" | "TECH" | "STANDARD" | "OFFICE" | "GUEST";
 } | null;
 
 export default function UserMenu() {
@@ -42,6 +42,8 @@ export default function UserMenu() {
     ADMIN: "Admin",
     TECH: "Tecnico",
     STANDARD: "Standard",
+    OFFICE: "Uffici",
+    GUEST: "Guest",
   };
 
   return (

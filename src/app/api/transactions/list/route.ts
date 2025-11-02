@@ -17,11 +17,12 @@ export async function GET(req: Request) {
     const status = searchParams.get("status");
 
     // Get production checkouts with their transactions
-    // STANDARD users only see their own checkouts
+    // STANDARD, OFFICE and GUEST users only see their own checkouts
     // TECH and ADMIN see all checkouts
     const whereClause: any = {};
     
-    if (session.role === "STANDARD") {
+    if (session.role !== "ADMIN" && session.role !== "TECH") {
+      // For STANDARD, OFFICE and GUEST roles restrict to user's own checkouts
       whereClause.userId = session.id;
     }
 
