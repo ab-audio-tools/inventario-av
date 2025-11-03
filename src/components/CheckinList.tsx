@@ -99,10 +99,10 @@ export default function CheckinList() {
         checkout.checkins
           ?.filter((c: { itemId: number; qty: number }) => c.itemId === t.itemId)
           .reduce((sum: number, c: { itemId: number; qty: number }) => sum + c.qty, 0) || 0;
-      
+
       const remainingQty = t.qty - checkedInQty;
       const title = displayTitle(t.item);
-      
+
       let status = "In attesa";
       if (checkedInQty > 0) {
         status = checkedInQty === t.qty ? "Completato" : "Parziale";
@@ -153,7 +153,7 @@ export default function CheckinList() {
                 <th className="text-left p-3">Ente</th>
                 <th className="text-left p-3">Data Ritiro</th>
                 <th className="text-left p-3">Data Restituzione</th>
-                <th className="text-right p-3">Azioni</th>
+                <th className="text-right p-3"></th>
               </tr>
             </thead>
             <tbody>
@@ -168,26 +168,49 @@ export default function CheckinList() {
                   <td className="p-3">
                     {formatDateTime(checkout.restitutionDate)}
                   </td>
-                  <td className="p-3 text-right space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const doc = generateCheckinPDF(checkout);
-                        doc.save(`stato_checkin_${checkout.productionName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`);
-                      }}
-                      className="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:opacity-90 transition text-sm"
-                      title="Scarica PDF riepilogo"
-                    >
-                      PDF
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCheckout(checkout)}
-                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:opacity-90 transition text-sm"
-                    >
-                      Gestisci Check-in
-                    </button>
+                  <td className="p-3 text-right">
+                    <div className="flex justify-end items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const doc = generateCheckinPDF(checkout);
+                          doc.save(
+                            `stato_checkin_${checkout.productionName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date()
+                              .toISOString()
+                              .split("T")[0]}.pdf`
+                          );
+                        }}
+                        className="h-9 w-9 flex items-center justify-center rounded-lg border border-zinc-300 hover:bg-zinc-50 transition"
+                        title="Scarica PDF riepilogo"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-zinc-600"
+                        >
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCheckout(checkout)}
+                        className="h-9 px-3 bg-blue-600 text-white rounded-lg hover:opacity-90 transition text-sm flex items-center justify-center"
+                      >
+                        Gestisci Check-in
+                      </button>
+                    </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>

@@ -25,6 +25,8 @@ type Props = {
   };
 };
 
+
+
 export default function CheckoutRecapModal({ isOpen, onClose, data }: Props) {
   const [mounted, setMounted] = useState(false);
 
@@ -101,15 +103,19 @@ export default function CheckoutRecapModal({ isOpen, onClose, data }: Props) {
       styles: { fontSize: 9 },
       headStyles: { fillColor: [0, 0, 0] },
     });
+    const now = new Date();
+const dateTime = now.toLocaleString("it-IT", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
     // Footer
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 40;
     doc.setFontSize(8);
-    doc.text(
-      `Documento generato il ${new Date().toLocaleDateString("it-IT")}`,
-      14,
-      finalY + 10
-    );
+    doc.text(`Documento generato il ${dateTime}`, 14, finalY + 10);
 
     doc.save(`checkout_${data.surname}_${new Date(data.pickupDate).toISOString().split("T")[0]}.pdf`);
   };

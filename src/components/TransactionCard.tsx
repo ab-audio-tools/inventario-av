@@ -33,10 +33,25 @@ type ProductionCheckout = {
 type Props = {
   checkout: ProductionCheckout;
 };
+function formatDateTime(dateString: string) {
+  return new Date(dateString).toLocaleString("it-IT", {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  });
+}
 
 export default function TransactionCard({ checkout }: Props) {
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
+
+    const now = new Date();
+    const dateTime = now.toLocaleString("it-IT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     // Title
     doc.setFontSize(18);
@@ -94,11 +109,7 @@ export default function TransactionCard({ checkout }: Props) {
     // Footer
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 40;
     doc.setFontSize(8);
-    doc.text(
-      `Documento generato il ${new Date().toLocaleDateString("it-IT")}`,
-      14,
-      finalY + 10
-    );
+    doc.text(`Documento generato il ${dateTime}`, 14, finalY + 10);
 
     const fileName = `checkout_${checkout.productionName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date(checkout.pickupDate).toISOString().split("T")[0]}.pdf`;
     doc.save(fileName);
