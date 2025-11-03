@@ -6,7 +6,6 @@ const config: Config = {
     extend: {
       colors: {
         pfn: {
-          // Polifonia
           night:  "#01161E",
           teal:   "#3C8689",
           cyan:   "#0088A2",
