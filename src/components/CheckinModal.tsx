@@ -23,6 +23,9 @@ type ProductionCheckout = {
   id: number;
   productionName: string;
   name: string;
+  ente: string;
+  pickupDate: string;
+  restitutionDate: string;
   surname: string;
   transactions: Transaction[];
   checkins?: { itemId: number; qty: number }[];
@@ -41,6 +44,12 @@ type ItemCheckin = {
   returnedQty: number;
   checked: boolean;
 };
+ function formatDateTime(dateString: string) {
+    return new Date(dateString).toLocaleString("it-IT", {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    });
+  }
 
 function generateCheckinPDF(checkout: ProductionCheckout, checkedItems: ItemCheckin[]) {
   const doc = new jsPDF();
@@ -59,6 +68,16 @@ function generateCheckinPDF(checkout: ProductionCheckout, checkedItems: ItemChec
   yPos += 6;
   doc.text(`Responsabile: ${checkout.name} ${checkout.surname}`, 14, yPos);
   yPos += 10;
+  doc.text(`Produzione: ${checkout.productionName}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Responsabile: ${checkout.name} ${checkout.surname}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Ente: ${checkout.ente}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Data Ritiro: ${formatDateTime(checkout.pickupDate)}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Data Restituzione: ${formatDateTime(checkout.restitutionDate)}`, 14, yPos);
+    yPos += 10;
 
   // Items Table
   const tableData = checkedItems.map((item) => {

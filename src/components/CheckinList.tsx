@@ -173,7 +173,7 @@ export default function CheckinList() {
                       type="button"
                       onClick={() => {
                         const doc = generateCheckinPDF(checkout);
-                        doc.save(`checkin_${checkout.productionName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`);
+                        doc.save(`stato_checkin_${checkout.productionName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`);
                       }}
                       className="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:opacity-90 transition text-sm"
                       title="Scarica PDF riepilogo"
