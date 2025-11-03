@@ -5,27 +5,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        pol: {
-          night: "#0C1A1F",
-          teal700: "#127A7E",
-          teal500: "#26A6AD",
-          teal300: "#6CD1D6",
-          ivory: "#EAD7B0",
-          white: "#FFFFFF",
+        pfn: {
+          // Polifonia
+          night:  "#01161E",
+          teal:   "#3C8689",
+          cyan:   "#0088A2",
+          mint:   "#A9DBA8",
+          ivory:  "#ECD0A0",
+          white:  "#FFFFFF",
         },
       },
       fontFamily: {
-        display: ["Cinzel", "serif"],
-        sans: ["Montserrat", "ui-sans-serif", "system-ui"],
+        brand: ["'Spectral SC'", "serif"],   // logo / brand
+        display: ["'Bebas Neue'", "sans-serif"], // titoli
+        sans: ["'Bebas Neue'", "system-ui", "sans-serif"], // testo UI
       },
       boxShadow: {
-        soft: "0 6px 20px rgba(0,0,0,0.15)",
+        soft: "0 6px 20px rgba(0,0,0,0.2)",
       },
       borderRadius: {
-        xl2: "1.25rem",
+        xl2: "1.2rem",
       },
     },
   },
   plugins: [],
 };
+
 export default config;
