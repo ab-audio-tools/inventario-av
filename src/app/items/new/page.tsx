@@ -139,7 +139,7 @@ export default function NewItemPage() {
 
         <div className="flex justify-end">
           <button type="submit" disabled={!validTitle || !form.categoryId}
-            className="px-4 py-2 rounded-xl bg-black text-white disabled:opacity-40">
+            className="px-4 py-2 rounded-xl bg-light-blue text-white disabled:opacity-40">
             Salva
           </button>
         </div>

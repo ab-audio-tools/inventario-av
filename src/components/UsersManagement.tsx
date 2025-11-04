@@ -240,7 +240,7 @@ export default function UsersManagement() {
             type="button"
             onClick={handleCreate}
             disabled={creating}
-            className="px-4 py-2 rounded-lg bg-black text-white hover:opacity-90 transition disabled:opacity-40"
+            className="px-4 py-2 rounded-lg bg-light-blue text-white hover:opacity-90 transition disabled:opacity-40"
           >
             {creating ? "Creazione..." : "Crea Utente"}
           </button>

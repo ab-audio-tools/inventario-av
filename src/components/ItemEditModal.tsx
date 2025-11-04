@@ -131,7 +131,7 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
 
   const modal = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-light-blue/50 backdrop-blur-sm" />
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold">Modifica Articolo</h2>
@@ -210,7 +210,7 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
               {loading ? "Eliminazione..." : "Elimina"}
             </button>
 
-            <button type="submit" disabled={!validTitle || loading} className="px-4 py-2 rounded-xl bg-black text-white disabled:opacity-40">
+            <button type="submit" disabled={!validTitle || loading} className="px-4 py-2 rounded-xl bg-light-blue text-white disabled:opacity-40">
               {loading ? "Salvataggio..." : "Salva Modifiche"}
             </button>
           </div>

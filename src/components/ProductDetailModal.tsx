@@ -61,7 +61,7 @@ export default function ProductDetailModal({ item, isOpen, onClose }: Props) {
       onClick={onClose}
     >
       {/* Backdrop - blur and darken */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-light-blue/50 backdrop-blur-sm" />
 
       {/* Modal Content */}
       <div
@@ -154,7 +154,7 @@ export default function ProductDetailModal({ item, isOpen, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-black text-white hover:opacity-90 transition"
+            className="px-4 py-2 rounded-xl bg-light-blue text-white hover:opacity-90 transition"
           >
             Chiudi
           </button>

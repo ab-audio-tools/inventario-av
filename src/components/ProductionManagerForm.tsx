@@ -268,7 +268,7 @@ export default function ProductionManagerForm({ cart, stockMap }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 rounded-xl bg-black text-white hover:opacity-90 transition disabled:opacity-40"
+              className="px-6 py-2 rounded-xl bg-light-blue text-white hover:opacity-90 transition disabled:opacity-40"
             >
               {loading ? "Elaborazione..." : "Conferma Checkout"}
             </button>

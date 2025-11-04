@@ -203,7 +203,7 @@ export default function CartDrawer() {
               onClick={() => {
                 window.location.href = "/cart/production-manager";
               }}
-              className="px-6 py-2 rounded-xl bg-black text-white hover:opacity-90 transition font-medium"
+              className="px-6 py-2 rounded-xl bg-light-blue text-white hover:opacity-90 transition font-medium"
             >
               Continua
             </button>

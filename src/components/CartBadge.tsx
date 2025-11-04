@@ -47,7 +47,7 @@ export default function CartBadge() {
       </svg>
       <span>Carrello</span>
       <span
-        className={`min-w-5 h-5 px-1 rounded-full bg-black text-white text-xs grid place-items-center ${
+        className={`min-w-5 h-5 px-1 rounded-full bg-yellow text-white text-xs grid place-items-center ${
           pulse ? "animate-pulse" : ""
         }`}
       >

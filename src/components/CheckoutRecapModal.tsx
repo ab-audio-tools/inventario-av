@@ -127,7 +127,7 @@ const dateTime = now.toLocaleString("it-IT", {
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-light-blue/50 backdrop-blur-sm" />
       <div
         className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
@@ -270,7 +270,7 @@ const dateTime = now.toLocaleString("it-IT", {
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 rounded-xl bg-black text-white hover:opacity-90 transition"
+              className="px-6 py-2 rounded-xl bg-light-blue text-white hover:opacity-90 transition"
             >
               Chiudi
             </button>

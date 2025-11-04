@@ -9,6 +9,9 @@
 .bg-light-blue{
   background-color: var(--blu-chiaro);
 }
+.bg-yellow{
+  background-color: var(--giallo);
+}
 body {
   color: var(--blu-chiaro);
 }

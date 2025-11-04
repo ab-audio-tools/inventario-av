@@ -91,7 +91,7 @@ export default function SearchAndFilter({ categories, allItems }: {
             onClick={() => setViewMode("list")}
             className={`p-2 transition ${
               viewMode === "list"
-                ? "bg-black text-white"
+                ? "bg-light-blue text-white"
                 : "bg-white text-zinc-600 hover:bg-zinc-50"
             }`}
             aria-label="Vista lista"

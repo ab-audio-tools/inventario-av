@@ -120,7 +120,7 @@ export default function ExportModal({ isOpen, onClose }: Props) {
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-light-blue/50 backdrop-blur-sm" />
       <div
         className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full"
         onClick={(e) => e.stopPropagation()}
@@ -212,7 +212,7 @@ export default function ExportModal({ isOpen, onClose }: Props) {
               type="button"
               onClick={handleExport}
               disabled={loading}
-              className="px-4 py-2 rounded-xl bg-black text-white hover:opacity-90 transition disabled:opacity-40"
+              className="px-4 py-2 rounded-xl bg-light-blue text-white hover:opacity-90 transition disabled:opacity-40"
             >
               {loading ? "Esportazione..." : "Esporta"}
             </button>
