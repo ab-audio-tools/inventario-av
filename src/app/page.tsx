@@ -2,6 +2,8 @@ import PageFade from "@/components/PageFade";
 import SearchAndFilter from "@/components/SearchAndFilter";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic"; // evita cache server-side in produzione, mostra sempre dati aggiornati
+
 export default async function Page() {
   console.log('Loading page data...');
   const [items, categories] = await Promise.all([
