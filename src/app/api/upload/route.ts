@@ -5,6 +5,9 @@ import path from "path";
 export const runtime = "nodejs";          // serve fs
 export const dynamic = "force-dynamic";   // no cache
 
+// In produzione Netlify, usa una directory temporanea
+const isProduction = process.env.NODE_ENV === 'production';
+
 function safeBaseName(name: string) {
   return name.replace(/[^a-z0-9._-]+/gi, "_").toLowerCase();
 }
@@ -27,7 +30,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File troppo grande (max 10MB)" }, { status: 400 });
     }
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const uploadsDir = isProduction
+      ? path.join('/tmp', 'uploads')
+      : path.join(process.cwd(), "public", "uploads");
     await mkdir(uploadsDir, { recursive: true });
 
     const orig = safeBaseName(file.name || "image");
@@ -38,8 +43,10 @@ export async function POST(req: Request) {
 
     await writeFile(filepath, Buffer.from(bytes));
 
-    // URL servito staticamente da Next (public/)
-    const url = `/uploads/${filename}`;
+    // URL servito staticamente da Next (public/) o da tmp in produzione
+    const url = isProduction
+      ? `data:${type};base64,${Buffer.from(bytes).toString('base64')}`
+      : `/uploads/${filename}`;
     return NextResponse.json({ url });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? "Upload fallito" }, { status: 500 });
