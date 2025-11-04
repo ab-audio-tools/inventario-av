@@ -22,6 +22,8 @@ type Item = {
 export default function SearchAndFilter({ categories, allItems }: {
   categories: Category[]; allItems: Item[];
 }) {
+  console.log('SearchAndFilter rendering with items:', allItems.length);
+  console.log('Items details:', allItems.map(item => ({ id: item.id, name: item.name, brand: item.brand, model: item.model })));
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<"all" | number>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");

@@ -29,12 +29,20 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
 
   useEffect(() => {
     // load session role for guest checks
+    console.log('ItemCard loading session for item:', item.id);
     fetch("/api/auth/session")
-      .then((r) => r.json())
+      .then((r) => {
+        console.log('Session response status:', r.status);
+        return r.json();
+      })
       .then((d) => {
+        console.log('Session data for item', item.id, ':', d);
         setUserRole(d.user?.role || null);
       })
-      .catch(() => setUserRole(null));
+      .catch((error) => {
+        console.error('Session fetch error for item', item.id, ':', error);
+        setUserRole(null);
+      });
     const refresh = () => {
       ensureMax(item.id, item.quantity);
       setInCartQty(qtyFor(item.id));
