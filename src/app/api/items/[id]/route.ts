@@ -85,8 +85,29 @@ export async function DELETE(
   _: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await context.params;
-  const itemId = Number(id);
-  await prisma.item.delete({ where: { id: itemId } });
-  return NextResponse.json({ ok: true });
+  const session = await getSession();
+  if (!session || !["ADMIN", "TECH"].includes(session.role)) {
+    return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
+  }
+
+  try {
+    const { id } = await context.params;
+    const itemId = parseInt(id, 10);
+    if (isNaN(itemId)) {
+      return NextResponse.json({ error: "ID non valido" }, { status: 400 });
+    }
+
+    const exists = await prisma.item.findUnique({ where: { id: itemId } });
+    if (!exists) {
+      return NextResponse.json({ error: "Articolo non trovato" }, { status: 404 });
+    }
+
+    await prisma.item.delete({ where: { id: itemId } });
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message || "Errore durante la cancellazione" },
+      { status: 500 }
+    );
+  }
 }
