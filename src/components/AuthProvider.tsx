@@ -15,6 +15,26 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       return;
     }
 
+    // In produzione, controlla localStorage invece dell'API
+    if (process.env.NODE_ENV === 'production') {
+      const sessionData = localStorage.getItem('user-session');
+      if (sessionData) {
+        try {
+          const user = JSON.parse(sessionData);
+          if (user) {
+            setChecking(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing session:', error);
+        }
+      }
+      router.push("/login");
+      setChecking(false);
+      return;
+    }
+
+    // In sviluppo, usa l'API normalmente
     fetch("/api/auth/session")
       .then((r) => r.json())
       .then((data) => {

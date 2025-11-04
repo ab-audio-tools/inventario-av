@@ -30,6 +30,11 @@ export default function LoginPage() {
         return;
       }
 
+      // Save user session in localStorage for production
+      if (data.user) {
+        localStorage.setItem('user-session', JSON.stringify(data.user));
+      }
+
       // Redirect to home and force refresh
       window.location.href = "/";
     } catch (error) {
@@ -69,6 +74,7 @@ export default function LoginPage() {
                 required
                 className="w-full border rounded-xl px-3 py-2"
                 placeholder="Password"
+                autoComplete="current-password"
               />
             </div>
 
