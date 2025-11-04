@@ -204,7 +204,7 @@ export default function CheckinList() {
                       <button
                         type="button"
                         onClick={() => setSelectedCheckout(checkout)}
-                        className="h-9 px-3 bg-blue-600 text-white rounded-lg hover:opacity-90 transition text-sm flex items-center justify-center"
+                        className="h-9 px-3 background-cart-color text-white rounded-lg hover:opacity-90 transition text-sm flex items-center justify-center"
                       >
                         Gestisci Check-in
                       </button>

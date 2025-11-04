@@ -15,3 +15,6 @@ body {
 .cart-color{
   color: var(--blu-chiaro)
 }
+.background-cart-color{
+  background-color: var(--blu-chiaro);
+}
