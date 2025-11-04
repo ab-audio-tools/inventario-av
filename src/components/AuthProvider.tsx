@@ -15,7 +15,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       return;
     }
 
-    // In produzione, controlla localStorage invece dell'API
+    // In produzione (Netlify/Vercel), controlla localStorage invece dell'API
     if (process.env.NODE_ENV === 'production') {
       console.log('Checking session in production mode...');
       const sessionData = localStorage.getItem('user-session');

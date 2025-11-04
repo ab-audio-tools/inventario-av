@@ -21,10 +21,8 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export async function setSession(user: SessionUser): Promise<void> {
-  // In produzione su Netlify, non possiamo impostare cookies dal client
-  // Le sessioni saranno gestite lato server nelle Netlify Functions
+  // In produzione (Netlify/Vercel), usa localStorage
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-    // Salva temporaneamente in localStorage per compatibilità
     localStorage.setItem('user-session', JSON.stringify(user));
     return;
   }
@@ -43,7 +41,7 @@ export async function setSession(user: SessionUser): Promise<void> {
 }
 
 export async function getSession(): Promise<SessionUser | null> {
-  // In produzione su Netlify, usa localStorage per ora
+  // In produzione (Netlify/Vercel), usa localStorage
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
     try {
       const sessionData = localStorage.getItem('user-session');
@@ -70,7 +68,7 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 export async function clearSession(): Promise<void> {
-  // In produzione su Netlify, pulisci localStorage
+  // In produzione (Netlify/Vercel), pulisci localStorage
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
     localStorage.removeItem('user-session');
     return;

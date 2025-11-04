@@ -5,7 +5,7 @@ import path from "path";
 export const runtime = "nodejs";          // serve fs
 export const dynamic = "force-dynamic";   // no cache
 
-// In produzione Netlify, usa una directory temporanea
+// In produzione (Netlify o Vercel), usa una directory temporanea
 const isProduction = process.env.NODE_ENV === 'production';
 
 function safeBaseName(name: string) {
@@ -33,7 +33,10 @@ export async function POST(req: Request) {
     const uploadsDir = isProduction
       ? path.join('/tmp', 'uploads')
       : path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
+
+    if (!isProduction) {
+      await mkdir(uploadsDir, { recursive: true });
+    }
 
     const orig = safeBaseName(file.name || "image");
     const ext = path.extname(orig) || ".png";
@@ -41,9 +44,11 @@ export async function POST(req: Request) {
     const filename = `${base}_${Date.now()}_${Math.random().toString(36).slice(2,8)}${ext}`;
     const filepath = path.join(uploadsDir, filename);
 
-    await writeFile(filepath, Buffer.from(bytes));
+    if (!isProduction) {
+      await writeFile(filepath, Buffer.from(bytes));
+    }
 
-    // URL servito staticamente da Next (public/) o da tmp in produzione
+    // URL servito staticamente da Next (public/) o data URL in produzione
     const url = isProduction
       ? `data:${type};base64,${Buffer.from(bytes).toString('base64')}`
       : `/uploads/${filename}`;

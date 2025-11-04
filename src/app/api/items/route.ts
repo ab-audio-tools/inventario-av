@@ -10,7 +10,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  console.log('Creating new item...');
   const data = await req.json().catch(() => ({}));
+  console.log('Received data:', data);
   const {
     brand = null,
     model = null,
@@ -46,8 +48,10 @@ export async function POST(req: Request) {
       },
       include: { category: true },
     });
+    console.log('Item created successfully:', item.id);
     return NextResponse.json({ item });
   } catch (e: any) {
+    console.error('Error creating item:', e.message);
     return NextResponse.json({ error: e.message }, { status: 400 });
   }
 }
