@@ -21,10 +21,18 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export async function setSession(user: SessionUser): Promise<void> {
+  // In produzione su Netlify, non possiamo impostare cookies dal client
+  // Le sessioni saranno gestite lato server nelle Netlify Functions
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+    // Salva temporaneamente in localStorage per compatibilità
+    localStorage.setItem('user-session', JSON.stringify(user));
+    return;
+  }
+
   const cookieStore = await cookies();
   const expires = new Date();
   expires.setTime(expires.getTime() + SESSION_DURATION * 1000);
-  
+
   cookieStore.set(COOKIE_NAME, JSON.stringify(user), {
     expires,
     httpOnly: true,
@@ -35,11 +43,25 @@ export async function setSession(user: SessionUser): Promise<void> {
 }
 
 export async function getSession(): Promise<SessionUser | null> {
+  // In produzione su Netlify, usa localStorage per ora
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+    try {
+      const sessionData = localStorage.getItem('user-session');
+      if (sessionData) {
+        return JSON.parse(sessionData) as SessionUser;
+      }
+    } catch (error) {
+      console.error('Error loading session:', error);
+    }
+    return null;
+  }
+
+  // In sviluppo, usa cookies normalmente
   const cookieStore = await cookies();
   const session = cookieStore.get(COOKIE_NAME);
-  
+
   if (!session?.value) return null;
-  
+
   try {
     return JSON.parse(session.value) as SessionUser;
   } catch {
@@ -48,6 +70,12 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 export async function clearSession(): Promise<void> {
+  // In produzione su Netlify, pulisci localStorage
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+    localStorage.removeItem('user-session');
+    return;
+  }
+
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
 }
