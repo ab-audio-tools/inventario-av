@@ -33,6 +33,11 @@ export default function NewItemPage() {
       alert("Inserisci il Nome articolo oppure Brand + Modello.");
       return;
     }
+    console.log('Creating item with data:', {
+      ...form,
+      categoryId: Number(form.categoryId || 0),
+      quantity: Number(form.quantity || 0),
+    });
     const res = await fetch("/api/items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -43,11 +48,13 @@ export default function NewItemPage() {
       }),
     });
     const data = await res.json();
+    console.log('Create item response:', res.status, data);
     if (!res.ok) {
       alert(data.error || "Errore creazione articolo");
       return;
     }
     alert("Articolo creato");
+    console.log('Redirecting to home...');
     window.location.href = "/";
   }
 

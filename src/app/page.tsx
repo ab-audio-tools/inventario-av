@@ -12,6 +12,7 @@ export default async function Page() {
   prisma.category.findMany({ orderBy: { name: "asc" } }),
 ]);
   console.log('Loaded items:', items.length, 'categories:', categories.length);
+  console.log('Items details:', items.map(item => ({ id: item.id, name: item.name, brand: item.brand, model: item.model })));
 
   return (
     <PageFade>
