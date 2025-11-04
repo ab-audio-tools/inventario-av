@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export const handler = async (event: any) => {
   console.log('Auth function called:', event.httpMethod, event.path);
-  const path = event.path.replace('/.netlify/functions/auth', '');
+  const path = event.path.replace('/.netlify/functions/auth', '').replace(/^\/api\/auth/, '');
   console.log('Extracted path:', path);
 
   // CORS headers
