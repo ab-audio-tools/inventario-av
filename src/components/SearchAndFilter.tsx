@@ -63,7 +63,7 @@ export default function SearchAndFilter({ categories, allItems }: {
             onClick={() => setViewMode("grid")}
             className={`p-2 transition ${
               viewMode === "grid"
-                ? "bg-black text-white"
+                ? "bg-light-blue text-white"
                 : "bg-white text-zinc-600 hover:bg-zinc-50"
             }`}
             aria-label="Vista griglia"
