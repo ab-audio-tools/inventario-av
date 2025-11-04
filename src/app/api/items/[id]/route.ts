@@ -102,6 +102,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Articolo non trovato" }, { status: 404 });
     }
 
+    // Prima elimina tutte le transazioni associate all'articolo
+    await prisma.transaction.deleteMany({
+      where: { itemId: itemId }
+    });
+
+    // Poi elimina l'articolo
     await prisma.item.delete({ where: { id: itemId } });
     return NextResponse.json({ ok: true });
   } catch (e: any) {
