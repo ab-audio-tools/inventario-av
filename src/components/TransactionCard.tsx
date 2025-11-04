@@ -3,36 +3,11 @@ import jsPDF from "jspdf";
 // @ts-ignore
 import autoTable from "jspdf-autotable";
 import { displayTitle } from "@/lib/format";
+import type { ProductionCheckout } from "@/types/checkout";
 
-type ProductionCheckout = {
-  id: number;
-  productionName: string;
-  name: string;
-  surname: string;
-  ente: string;
-  email: string;
-  telephone: string;
-  pickupDate: Date | string;
-  restitutionDate: Date | string;
-  techPerson: string | null;
-  type: string;
-  createdAt: Date | string;
-  transactions: Array<{
-    id: number;
-    qty: number;
-    item: {
-      id: number;
-      name: string | null;
-      brand: string | null;
-      model: string | null;
-      quantity: number;
-    };
-  }>;
-};
+type Props = { checkout: ProductionCheckout };
 
-type Props = {
-  checkout: ProductionCheckout;
-};
+
 function formatDateTime(dateString: string) {
   return new Date(dateString).toLocaleString("it-IT", {
     dateStyle: 'short',

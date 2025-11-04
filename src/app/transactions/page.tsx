@@ -3,20 +3,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import PageFade from "@/components/PageFade";
 import TransactionCard from "@/components/TransactionCard";
+import type { ProductionCheckout } from "@/types/checkout";
 
-type ProductionCheckout = {
-  id: number;
-  productionName: string;
-  name: string;
-  surname: string;
-  ente: string;
-  status: "OPEN" | "CLOSED";
-  user?: {
-    id: number;
-    username: string;
-    name: string | null;
-  } | null;
-};
 
 export default function TransactionsPage() {
   const router = useRouter();
