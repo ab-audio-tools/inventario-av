@@ -61,6 +61,7 @@ export default function LoginPage() {
                 required
                 className="w-full border rounded-xl px-3 py-2"
                 placeholder="Username"
+                autoComplete="username"
                 autoFocus
               />
             </div>
