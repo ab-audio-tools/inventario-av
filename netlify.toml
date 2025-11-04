@@ -3,7 +3,7 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/api/*"
@@ -16,3 +16,6 @@
 [dev]
   command = "npm run dev"
   port = 3000
+
+[[build.hooks]]
+  command = "npm run migrate"
