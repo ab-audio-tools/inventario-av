@@ -103,6 +103,30 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
     }
   }
 
+  async function handleDeleteItem() {
+    if (!confirm("Sei sicuro di voler eliminare questo articolo? Questa operazione è irreversibile.")) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/items/${item.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || "Errore durante l'eliminazione");
+        setLoading(false);
+        return;
+      }
+      // chiudi e ricarica per aggiornare la lista
+      onClose();
+      window.location.reload();
+    } catch (err) {
+      alert("Errore di connessione durante l'eliminazione");
+      setLoading(false);
+    }
+  }
+
   if (!isOpen) return null;
 
   const modal = (
@@ -176,6 +200,16 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
 
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl border hover:bg-zinc-50">Annulla</button>
+
+            <button
+              type="button"
+              onClick={handleDeleteItem}
+              disabled={loading}
+              className="px-4 py-2 rounded-xl bg-red-600 text-white hover:opacity-90 disabled:opacity-40"
+            >
+              {loading ? "Eliminazione..." : "Elimina"}
+            </button>
+
             <button type="submit" disabled={!validTitle || loading} className="px-4 py-2 rounded-xl bg-black text-white disabled:opacity-40">
               {loading ? "Salvataggio..." : "Salva Modifiche"}
             </button>
