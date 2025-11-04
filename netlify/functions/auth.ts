@@ -4,7 +4,9 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 export const handler = async (event: any) => {
+  console.log('Auth function called:', event.httpMethod, event.path);
   const path = event.path.replace('/.netlify/functions/auth', '');
+  console.log('Extracted path:', path);
 
   // CORS headers
   const headers = {
@@ -29,9 +31,12 @@ export const handler = async (event: any) => {
     }
 
     if (path === '/login' && event.httpMethod === 'POST') {
+      console.log('Processing login request');
       const { username, password } = JSON.parse(event.body || '{}');
+      console.log('Login attempt for user:', username);
 
       if (!username || !password) {
+        console.log('Missing username or password');
         return {
           statusCode: 400,
           headers,
@@ -42,8 +47,10 @@ export const handler = async (event: any) => {
       const user = await prisma.user.findUnique({
         where: { username },
       });
+      console.log('User found in database:', !!user);
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
+        console.log('Invalid credentials');
         return {
           statusCode: 401,
           headers,
@@ -53,6 +60,7 @@ export const handler = async (event: any) => {
 
       // Return user without password
       const { password: _, ...userWithoutPassword } = user;
+      console.log('Login successful for user:', userWithoutPassword.username);
 
       return {
         statusCode: 200,
