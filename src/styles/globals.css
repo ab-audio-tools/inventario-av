@@ -1,5 +1,17 @@
 @import "tailwindcss";
-
+:root {
+  --bg-color: #F9FAFB;
+  --primary-color: #01161E;
+  --blu-chiaro: #0088A2;
+  --giallo: #ECOOAO;
+}
+body {
+  color: var(--primary-color);
+}
 .border-emerald-500.bg-emerald-50 {
   box-shadow: 0 0 0 3px rgba(16,185,129,0.15) inset;
+}
+
+.cart-color{
+  color: var(--blu-chiaro)
 }

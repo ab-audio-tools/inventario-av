@@ -27,7 +27,7 @@ export default function CartBadge() {
   return (
     <Link
       href="/cart"
-      className="ml-auto inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm hover:shadow-sm transition relative"
+      className="cart-color ml-auto inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm hover:shadow-sm transition relative"
       aria-label={`Carrello: ${count} articoli`}
     >
       <svg
