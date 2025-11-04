@@ -4,8 +4,7 @@ provider = "prisma-client-js"
 
 datasource db {
   provider  = "postgresql"
-  url       = env("NETLIFY_DATABASE_URL")           // pooled (pgbouncer)
-  directUrl = env("NETLIFY_DATABASE_URL_UNPOOLED")  // direct per migrazioni
+  url       = env("DATABASE_URL")           // pooled (pgbouncer)
 }
 
 model Category {
