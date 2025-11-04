@@ -16,13 +16,16 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      console.log('Attempting login with:', { username, password: '***' });
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
+      console.log('Login response status:', res.status);
       const data = await res.json();
+      console.log('Login response data:', data);
 
       if (!res.ok) {
         setError(data.error || "Errore durante il login");
@@ -32,10 +35,12 @@ export default function LoginPage() {
 
       // Save user session in localStorage for production
       if (data.user) {
+        console.log('Login successful, saving user to localStorage:', data.user);
         localStorage.setItem('user-session', JSON.stringify(data.user));
       }
 
       // Redirect to home and force refresh
+      console.log('Redirecting to home...');
       window.location.href = "/";
     } catch (error) {
       setError("Errore di connessione");
