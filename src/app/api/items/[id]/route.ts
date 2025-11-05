@@ -55,21 +55,26 @@ export async function PATCH(
       );
     }
 
+    // Costruisci data di update evitando di referenziare campi non tipizzati lato client
+    const updateData: any = {
+      brand: data.brand || null,
+      model: data.model || null,
+      name: data.name || null,
+      typology: data.typology || null,
+      categoryId: Number(data.categoryId),
+      sku: data.sku || null,
+      quantity: Number(data.quantity) || 0,
+      description: data.description || null,
+      imageUrl: data.imageUrl || null,
+    };
+    if (data.restricted !== undefined) {
+      updateData.restricted = Boolean(data.restricted);
+    }
+
     // Update con dati validati
     const item = await prisma.item.update({
       where: { id: itemId },
-      data: {
-        brand: data.brand || null,
-        model: data.model || null,
-        name: data.name || null,
-        typology: data.typology || null,
-        categoryId: Number(data.categoryId),
-        sku: data.sku || null,
-        quantity: Number(data.quantity) || 0,
-        description: data.description || null,
-        imageUrl: data.imageUrl || null,
-        restricted: Boolean(data.restricted ?? exists.restricted),
-      },
+      data: updateData,
       include: { category: true },
     });
 

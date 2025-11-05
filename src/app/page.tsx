@@ -11,9 +11,10 @@ export default async function Page() {
   const session = await getSession();
   const isPrivileged = session && (session.role === "ADMIN" || session.role === "TECH");
 
+  const whereClause: any = isPrivileged ? undefined : { restricted: false };
   const [items, categories] = await Promise.all([
     prisma.item.findMany({
-      where: isPrivileged ? undefined : { restricted: false },
+      where: whereClause,
       include: { category: true },
       orderBy: { createdAt: "desc" },
     }),
