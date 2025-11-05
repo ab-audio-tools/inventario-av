@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic"; // evita cache server-side in produzione, mostra sempre dati aggiornati
+export const runtime = "nodejs"; // forza runtime Node per compatibilità Prisma su Vercel
 
 export default async function Page() {
   console.log('Loading page data...');
