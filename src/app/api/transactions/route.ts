@@ -67,13 +67,49 @@ export async function POST(req: Request) {
       }
 
       for (const it of items) {
-        const item = await tx.item.findUnique({ where: { id: Number(it.id) } });
+        const lineId = Number(it.id);
+        const lineQty = Number(it.qty);
+
+        // Check if it's a Set first
+        const set = await tx.set.findUnique({
+          where: { id: lineId },
+          include: { items: true },
+        });
+
+        if (set) {
+          // Permission check for restricted sets
+          if (set.restricted && !["ADMIN", "TECH"].includes(session.role)) {
+            throw new Error(`Operazione non consentita su set riservato (${set.name})`);
+          }
+          // Process each component
+          for (const comp of set.items) {
+            const compItem = await tx.item.findUnique({ where: { id: comp.itemId } });
+            if (!compItem) throw new Error(`Item componente ${comp.itemId} non trovato`);
+            const compQtyTotal = (type === "CHECKOUT" ? -1 : 1) * (lineQty * comp.qty);
+            const newQty = compItem.quantity + compQtyTotal;
+            if (newQty < 0) throw new Error(`Stock insufficiente per componente ${compItem.name}`);
+            await tx.item.update({ where: { id: compItem.id }, data: { quantity: newQty } });
+            const tr = await tx.transaction.create({
+              data: {
+                itemId: compItem.id,
+                type,
+                qty: lineQty * comp.qty,
+                note: transactionNote,
+                productionCheckoutId: productionCheckoutId || null,
+              },
+            });
+            results.push({ item: compItem, tr, newQty, set: { id: set.id, name: set.name } });
+          }
+          continue;
+        }
+
+        // Otherwise treat as single Item
+        const item = await tx.item.findUnique({ where: { id: lineId } });
         if (!item) throw new Error(`Item ${it.id} not found`);
-        // blocca transazioni su articoli riservati se non ADMIN/TECH
         if (item.restricted && !["ADMIN", "TECH"].includes(session.role)) {
           throw new Error(`Operazione non consentita su articolo riservato (${item.name || item.brand || item.model || item.id})`);
         }
-        const delta = type === "CHECKOUT" ? -Number(it.qty) : Number(it.qty);
+        const delta = type === "CHECKOUT" ? -lineQty : lineQty;
         const newQty = item.quantity + delta;
         if (newQty < 0) throw new Error(`Stock insufficiente per ${item.name}`);
         await tx.item.update({ where: { id: item.id }, data: { quantity: newQty } });
@@ -81,7 +117,7 @@ export async function POST(req: Request) {
           data: {
             itemId: item.id,
             type,
-            qty: Number(it.qty),
+            qty: lineQty,
             note: transactionNote,
             productionCheckoutId: productionCheckoutId || null,
           },
@@ -94,9 +130,14 @@ export async function POST(req: Request) {
   }
 
   const rows = results
-    .map((r) =>
-      `<tr><td>${r.item.name}</td><td>${r.tr.qty}</td><td>${r.newQty}</td></tr>`
-    )
+    .map((r) => {
+      const base = `<tr><td>${r.item.name}</td><td>${r.tr.qty}</td><td>${r.newQty}</td></tr>`;
+      if (r.set) {
+        // annotate that this row belongs to a set
+        return `<tr><td><i>Set: ${r.set.name}</i> · incl. ${r.item.name}</td><td>${r.tr.qty}</td><td>${r.newQty}</td></tr>`;
+      }
+      return base;
+    })
     .join("");
 
   let html = `
