@@ -118,4 +118,6 @@ guest:guest123
 4) [x] Correggere bug che non scala correttamente i check-in incompleti ma duplica l'articolo con la quantità totale richiesta al checkout e lo stesso articolo nella quantità rimasta
 5) [x] Modifica articolo (aggiungere matitina vicino a i cerchiata) per modificare l'articolo e le sue caratteristiche
 6) [x] Setup per produzione
-7) [x] Branding e Styling
+7) [ ] Branding e Styling
+8) [ ] Aggiunta set di articoli multipli + possibilità di crearli e modificarli
+9) [ ] Aggiungere funzione di hide per articoli non disponili al rental per utenti non admin/tech

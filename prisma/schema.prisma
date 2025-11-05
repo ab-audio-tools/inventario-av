@@ -27,6 +27,8 @@ model Item {
   description String?
   imageUrl    String?
   quantity    Int       @default(0)
+  // Se true, l'articolo è visibile solo a ADMIN/TECH
+  restricted  Boolean   @default(false)
 
   categoryId  Int
   category    Category  @relation(fields: [categoryId], references: [id])

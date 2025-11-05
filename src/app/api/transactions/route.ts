@@ -69,6 +69,10 @@ export async function POST(req: Request) {
       for (const it of items) {
         const item = await tx.item.findUnique({ where: { id: Number(it.id) } });
         if (!item) throw new Error(`Item ${it.id} not found`);
+        // blocca transazioni su articoli riservati se non ADMIN/TECH
+        if (item.restricted && !["ADMIN", "TECH"].includes(session.role)) {
+          throw new Error(`Operazione non consentita su articolo riservato (${item.name || item.brand || item.model || item.id})`);
+        }
         const delta = type === "CHECKOUT" ? -Number(it.qty) : Number(it.qty);
         const newQty = item.quantity + delta;
         if (newQty < 0) throw new Error(`Stock insufficiente per ${item.name}`);

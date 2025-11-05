@@ -14,6 +14,7 @@ export default function NewItemPage() {
     quantity: 0,
     description: "",
     imageUrl: "", // se già carichi su /public/uploads, metti qui il path
+    restricted: false,
   });
 
   useEffect(() => {
@@ -135,6 +136,18 @@ export default function NewItemPage() {
           <label className="text-sm text-zinc-600">Descrizione</label>
           <textarea className="w-full border rounded-xl px-3 py-2" rows={3}
             value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            id="restricted"
+            type="checkbox"
+            checked={form.restricted}
+            onChange={(e) => setForm({ ...form, restricted: e.target.checked })}
+          />
+          <label htmlFor="restricted" className="text-sm text-zinc-700">
+            Visibile solo a Admin/Tech
+          </label>
         </div>
 
         <div className="flex justify-end">

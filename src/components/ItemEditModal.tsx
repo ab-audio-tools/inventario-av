@@ -14,6 +14,7 @@ type Item = {
   imageUrl?: string | null;
   quantity: number;
   category?: { id: number; name: string } | null;
+  restricted?: boolean;
 };
 
 type Props = {
@@ -33,6 +34,7 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
     quantity: item.quantity ?? 0,
     description: item.description ?? "",
     imageUrl: item.imageUrl ?? "",
+    restricted: Boolean(item.restricted ?? false),
   });
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,6 +51,7 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
       quantity: item.quantity ?? 0,
       description: item.description ?? "",
       imageUrl: item.imageUrl ?? "",
+      restricted: Boolean(item.restricted ?? false),
     });
     fetch("/api/categories")
       .then((r) => r.json())
@@ -86,6 +89,7 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
           quantity: Number(form.quantity) || 0,
           description: form.description || null,
           imageUrl: form.imageUrl || null,
+          restricted: Boolean(form.restricted),
         }),
       });
       const data = await res.json();
@@ -196,6 +200,18 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
             <label className="text-sm text-zinc-600">Descrizione</label>
             <textarea className="w-full border rounded-xl px-3 py-2" rows={3}
               value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              id="restricted"
+              type="checkbox"
+              checked={form.restricted}
+              onChange={(e) => setForm({ ...form, restricted: e.target.checked })}
+            />
+            <label htmlFor="restricted" className="text-sm text-zinc-700">
+              Visibile solo a Admin/Tech
+            </label>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">

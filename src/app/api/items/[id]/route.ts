@@ -68,6 +68,7 @@ export async function PATCH(
         quantity: Number(data.quantity) || 0,
         description: data.description || null,
         imageUrl: data.imageUrl || null,
+        restricted: Boolean(data.restricted ?? exists.restricted),
       },
       include: { category: true },
     });
