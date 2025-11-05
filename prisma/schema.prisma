@@ -39,6 +39,7 @@ model Item {
   updatedAt   DateTime  @updatedAt
 
   transactions Transaction[]
+  setItems    SetItem[]
 }
 
 model Set {
