@@ -13,19 +13,18 @@ export default async function Page() {
   const isPrivileged = session && (session.role === "ADMIN" || session.role === "TECH");
 
   const whereClause: any = isPrivileged ? undefined : { restricted: false };
-  const [items, categories, setsResp] = await Promise.all([
+  const [items, categories, sets] = await Promise.all([
     prisma.item.findMany({
       where: whereClause,
       include: { category: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
-    (async () => {
-      // call our own API to compute set availability consistently
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/sets`, { cache: "no-store" }).catch(() => null);
-      if (!res || !res.ok) return { sets: [] } as any;
-      return res.json();
-    })(),
+    prisma.set.findMany({
+      where: isPrivileged ? undefined : { restricted: false },
+      include: { items: { include: { item: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
   console.log('Loaded items:', items.length, 'categories:', categories.length);
   console.log('Items details:', items.map(item => ({ id: item.id, name: item.name, brand: item.brand, model: item.model })));
@@ -34,15 +33,25 @@ export default async function Page() {
     <PageFade>
       <div className="space-y-4">
         <SearchAndFilter categories={categories} allItems={items} />
-        {Array.isArray(setsResp?.sets) && setsResp.sets.length > 0 && (
+        {Array.isArray(sets) && sets.length > 0 && (
           <div className="mt-6">
             <h2 className="text-lg font-semibold mb-2">Set</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
-              {setsResp.sets.map((s: any) => (
+              {sets.map((s: any) => {
+                const available = s.items.length === 0 ? 0 : Math.max(0, Math.min(...s.items.map((si: any) => Math.floor((si.item.quantity || 0) / Math.max(1, si.qty)))));
+                const dto = {
+                  id: s.id,
+                  name: s.name,
+                  imageUrl: s.imageUrl,
+                  available,
+                  items: s.items.map((si: any) => ({ itemId: si.itemId, qty: si.qty, name: si.item.name, brand: si.item.brand, model: si.item.model })),
+                };
+                return (
                 <div key={s.id} className="h-full">
-                  <SetCard set={s} />
+                  <SetCard set={dto} />
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

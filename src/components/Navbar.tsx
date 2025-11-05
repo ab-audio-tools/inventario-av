@@ -39,6 +39,7 @@ export default function Navbar() {
   }, []);
 
   const canAccessNewItem = user?.role === "ADMIN" || user?.role === "TECH";
+  const canAccessNewSet = canAccessNewItem;
   const canAccessTransactions = !!user && user.role !== "GUEST"; // i guest non vedono Movimenti
   const canAccessImportExport = user?.role === "ADMIN" || user?.role === "TECH" || user?.role === "OFFICE";
 
@@ -50,7 +51,10 @@ export default function Navbar() {
         <Link href="/" className="font-semibold tracking-tight">Inventario AV</Link>
         <div className="hidden sm:flex items-center gap-3">
           {canAccessNewItem && (
-            <Link href="/items/new" className="text-sm text-zinc-700 hover:text-black transition">Nuovo articolo</Link>
+            <>
+              <Link href="/items/new" className="text-sm text-zinc-700 hover:text-black transition">Nuovo articolo</Link>
+              <Link href="/sets/new" className="text-sm text-zinc-700 hover:text-black transition">Nuovo Set</Link>
+            </>
           )}
           {canAccessTransactions && (
             <Link href="/transactions" className="text-sm text-zinc-700 hover:text-black transition">Movimenti</Link>
