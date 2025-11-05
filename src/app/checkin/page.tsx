@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import PageFade from "@/components/PageFade";
 import CheckinList from "@/components/CheckinList";
+export const dynamic = "force-dynamic";
 
 export default async function CheckinPage() {
   const session = await getSession();

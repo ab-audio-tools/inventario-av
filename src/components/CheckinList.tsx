@@ -5,6 +5,7 @@ import jsPDF from "jspdf";
 // @ts-ignore
 import autoTable from "jspdf-autotable";
 import { displayTitle } from "@/lib/format";
+export const dynamic = "force-dynamic";
 
 type Transaction = {
   id: number;
