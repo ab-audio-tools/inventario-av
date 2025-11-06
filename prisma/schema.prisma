@@ -12,6 +12,7 @@ model Category {
   id    Int    @id @default(autoincrement())
   name  String @unique
   items Item[]
+  sets  Set[]   // relazione inversa verso Set (necessaria per Prisma)
 }
 
 model Item {
