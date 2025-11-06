@@ -12,11 +12,13 @@
     "migrate": "node scripts/migrate.js",
     "clean": "rm -rf build",
     "postinstall": "prisma generate",
-    "reset-sequences": "tsx scripts/reset-sequences.ts"
+    "reset-sequences": "tsx scripts/reset-sequences.ts",
+    "vercel-build": "prisma migrate deploy && prisma generate && next build"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
     "bcryptjs": "^3.0.2",
+    "dotenv": "^16.6.1",
     "framer-motion": "^12.23.24",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
@@ -44,8 +46,5 @@
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5"
-  },
-  "scripts": {
-    "vercel-build": "prisma migrate deploy && prisma generate && next build"
   }
 }
