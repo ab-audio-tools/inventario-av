@@ -36,8 +36,15 @@ export default function SetCard({ set, userRole: userRoleProp }: Props) {
   const active = inCartQty > 0;
 
   useEffect(() => {
-    ensureMax(set.id, set.available, "set");
-    setInCartQty(qtyFor(set.id, "set"));
+    const refresh = () => {
+      ensureMax(set.id, set.available, "set");
+      setInCartQty(qtyFor(set.id, "set"));
+    };
+    refresh();
+    
+    const onChange = () => refresh();
+    window.addEventListener("cart:change", onChange as any);
+    return () => window.removeEventListener("cart:change", onChange as any);
   }, [set.id, set.available]);
 
   function addOne() {
