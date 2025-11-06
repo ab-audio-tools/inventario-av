@@ -27,3 +27,6 @@ body {
 .background-cart-color{
   background-color: var(--blu-chiaro);
 }
+.bg-red-custom {
+  background-color: #ef4444 !important; /* Tailwind red-500 */
+}
