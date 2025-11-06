@@ -14,6 +14,7 @@ type SetDto = {
   imageUrl?: string | null;
   available: number;
   restricted?: boolean;
+  categoryId?: number | null; // <- nuovo campo
   items: { itemId: number; qty: number; name?: string | null; brand?: string | null; model?: string | null }[];
 };
 
@@ -59,6 +60,7 @@ export default async function Page() {
       imageUrl: s.imageUrl,
       restricted: s.restricted,
       available,
+      categoryId: s.categoryId, // <- passa categoryId
       items: s.items.map((si: any) => ({
         itemId: si.itemId,
         qty: si.qty,

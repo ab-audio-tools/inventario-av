@@ -8,6 +8,7 @@ type SetDto = {
   name: string;
   imageUrl?: string | null;
   available: number; // computed on API
+  categoryId?: number | null; // <- nuovo campo
   items: { itemId: number; qty: number; name?: string | null; brand?: string | null; model?: string | null }[];
 };
 

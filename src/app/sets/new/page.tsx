@@ -5,11 +5,13 @@ import ImageUploader from "@/components/ImageUploader";
 export default function NewSetPage() {
   const [allItems, setAllItems] = useState<any[]>([]);
   const [q, setQ] = useState("");
-  const [form, setForm] = useState({ name: "", imageUrl: "", restricted: false });
+  const [form, setForm] = useState({ name: "", imageUrl: "", restricted: false, categoryId: "" }); // <- categoryId string (select)
   const [components, setComponents] = useState<{ itemId: number; qty: number; name: string }[]>([]);
+  const [categories, setCategories] = useState<any[]>([]); // <- categorie
 
   useEffect(() => {
     fetch("/api/items").then(r => r.json()).then(d => setAllItems(d.items || [])).catch(() => setAllItems([]));
+    fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.categories || [])).catch(() => setCategories([]));
   }, []);
 
   const filtered = useMemo(() => {
@@ -37,7 +39,8 @@ export default function NewSetPage() {
       body: JSON.stringify({
         name: form.name,
         imageUrl: form.imageUrl || null,
-        restricted: !!form.restricted, // forza booleano
+        restricted: !!form.restricted,
+        categoryId: form.categoryId ? Number(form.categoryId) : null, // <- invia categoria
         items: components.map(c => ({ itemId: c.itemId, qty: c.qty })),
       }),
     });
@@ -62,7 +65,20 @@ export default function NewSetPage() {
             <input className="w-full border rounded-xl px-3 py-2" value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome set" />
           </div>
-          <div className="flex items-center gap-2 pt-6">
+          <div>
+            <label className="text-sm text-zinc-600">Categoria</label>
+            <select
+              className="w-full border rounded-xl px-3 py-2"
+              value={form.categoryId}
+              onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+            >
+              <option value="">Nessuna</option>
+              {categories.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 md:col-span-2">
             <input id="restricted" type="checkbox" checked={form.restricted} onChange={(e) => setForm({ ...form, restricted: e.target.checked })} />
             <label htmlFor="restricted" className="text-sm text-zinc-700">Visibile solo a Admin/Tech</label>
           </div>

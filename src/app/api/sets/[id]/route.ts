@@ -27,15 +27,17 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
   const setId = Number(id);
   if (!Number.isFinite(setId)) return NextResponse.json({ error: "ID non valido" }, { status: 400 });
 
-  const { name, imageUrl = null, restricted, items } = await req.json();
+  const { name, imageUrl = null, restricted, categoryId, items } = await req.json();
 
-  // update core fields
   const data: any = {};
   if (typeof name === "string") data.name = name;
   if (imageUrl !== undefined) data.imageUrl = imageUrl;
   if (restricted !== undefined) data.restricted = Boolean(restricted);
+  if (categoryId !== undefined) {
+    const catId = Number(categoryId);
+    data.categoryId = Number.isFinite(catId) && catId > 0 ? catId : null;
+  }
 
-  // update set
   const result = await prisma.$transaction(async (tx) => {
     const updated = await (tx as any).set.update({ where: { id: setId }, data });
     if (Array.isArray(items)) {

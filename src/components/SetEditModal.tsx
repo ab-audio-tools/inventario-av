@@ -8,6 +8,7 @@ type SetDto = {
   name: string;
   imageUrl?: string | null;
   available?: number;
+  categoryId?: number | null; // <- nuovo campo
   items: { itemId: number; qty: number; name?: string | null; brand?: string | null; model?: string | null }[];
 };
 
@@ -18,19 +19,22 @@ type Props = {
 };
 
 export default function SetEditModal({ set, isOpen, onClose }: Props) {
-  const [form, setForm] = useState({ name: set.name, imageUrl: set.imageUrl ?? "", restricted: false });
+  const [form, setForm] = useState({ name: set.name, imageUrl: set.imageUrl ?? "", restricted: false, categoryId: set.categoryId ?? null });
   const [components, setComponents] = useState<{ itemId: number; qty: number; name: string }[]>([]);
   const [allItems, setAllItems] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]); // <- categorie
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
-    setForm({ name: set.name, imageUrl: set.imageUrl ?? "", restricted: false });
+    setForm({ name: set.name, imageUrl: set.imageUrl ?? "", restricted: false, categoryId: set.categoryId ?? null });
     setComponents(set.items.map((i) => ({ itemId: i.itemId, qty: i.qty, name: i.name || i.brand || i.model || `Item ${i.itemId}` })));
     fetch("/api/items").then(r => r.json()).then(d => setAllItems(d.items || [])).catch(() => setAllItems([]));
+    fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.categories || [])).catch(() => setCategories([]));
     fetch(`/api/sets/${set.id}`).then(r => r.json()).then(d => {
       if (d.set?.restricted !== undefined) setForm(f => ({ ...f, restricted: d.set.restricted }));
+      if (d.set?.categoryId !== undefined) setForm(f => ({ ...f, categoryId: d.set.categoryId }));
     }).catch(() => {});
   }, [isOpen, set]);
 
@@ -67,6 +71,7 @@ export default function SetEditModal({ set, isOpen, onClose }: Props) {
           name: form.name,
           imageUrl: form.imageUrl || null,
           restricted: form.restricted,
+          categoryId: form.categoryId ?? null, // <- invia categoria
           items: components.map(c => ({ itemId: c.itemId, qty: c.qty })),
         }),
       });
@@ -125,7 +130,23 @@ export default function SetEditModal({ set, isOpen, onClose }: Props) {
               <input className="w-full border rounded-xl px-3 py-2" value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
-            <div className="flex items-center gap-2 pt-6">
+            <div>
+              <label className="text-sm text-zinc-600">Categoria</label>
+              <select
+                className="w-full border rounded-xl px-3 py-2"
+                value={form.categoryId ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value ? Number(e.target.value) : null;
+                  setForm({ ...form, categoryId: v });
+                }}
+              >
+                <option value="">Nessuna</option>
+                {categories.map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2 md:col-span-2">
               <input id="restricted" type="checkbox" checked={form.restricted} onChange={(e) => setForm({ ...form, restricted: e.target.checked })} />
               <label htmlFor="restricted" className="text-sm text-zinc-700">Visibile solo a Admin/Tech</label>
             </div>

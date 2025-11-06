@@ -26,6 +26,7 @@ type SetDto = {
   imageUrl?: string | null;
   available: number;
   restricted?: boolean; // deve essere sempre presente!
+  categoryId?: number | null; // <- nuovo campo
   items: { itemId: number; qty: number; name?: string | null; brand?: string | null; model?: string | null }[];
 };
 
@@ -62,14 +63,21 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
   const filteredSets = useMemo(() => {
     const ql = q.toLowerCase();
     return allSets.filter(s => {
-      // Se restricted è undefined, trattalo come false (visibile a tutti)
       const isRestricted = !!s.restricted;
+      // filtro visibilità
+      // userRole è nello scope del componente
       if (isRestricted && userRole !== "ADMIN" && userRole !== "TECH") return false;
-      if (!q) return true;
-      return s.name.toLowerCase().includes(ql) || 
+
+      // filtro categoria (se selezionata)
+      const matchCat = cat === "all" ? true : s.categoryId === cat;
+
+      // filtro testo
+      if (!q) return matchCat;
+      const matchQ = s.name.toLowerCase().includes(ql) ||
         s.items.some(i => (i.name || i.brand || i.model || "").toLowerCase().includes(ql));
+      return matchCat && matchQ;
     });
-  }, [q, allSets, userRole]);
+  }, [q, allSets, userRole, cat]);
 
   return (
     <div className="w-full">

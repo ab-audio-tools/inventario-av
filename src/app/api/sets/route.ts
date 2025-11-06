@@ -32,6 +32,7 @@ export async function GET() {
       imageUrl: s.imageUrl,
       restricted: s.restricted,
       available,
+      categoryId: s.categoryId,
       items: s.items.map((si: any) => ({
         itemId: si.itemId,
         qty: si.qty,
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Accesso negato" }, { status: 403 });
   }
 
-  const { name, imageUrl = null, restricted = false, items = [] } = await req.json();
+  const { name, imageUrl = null, restricted = false, categoryId, items = [] } = await req.json();
   if (!name || typeof name !== "string") {
     return NextResponse.json({ error: "name mancante" }, { status: 400 });
   }
@@ -65,16 +66,18 @@ export async function POST(req: Request) {
     .map((it: any) => ({ itemId: Number(it.itemId), qty: Math.max(1, Number(it.qty) || 1) }))
     .filter((it: any) => Number.isFinite(it.itemId) && it.itemId > 0);
 
-  const set = await (prisma as any).set.create({
-    data: {
-      name,
-      imageUrl,
-      restricted: Boolean(restricted),
-      items: {
-        create: setItems.map((si: any) => ({ itemId: si.itemId, qty: si.qty })),
-      },
+  const catId = Number(categoryId);
+  const data: any = {
+    name,
+    imageUrl,
+    restricted: Boolean(restricted),
+    items: {
+      create: setItems.map((si: any) => ({ itemId: si.itemId, qty: si.qty })),
     },
-  });
+  };
+  if (Number.isFinite(catId) && catId > 0) data.categoryId = catId;
+
+  const set = await (prisma as any).set.create({ data });
   return NextResponse.json({ set });
 }
 
