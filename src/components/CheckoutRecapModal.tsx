@@ -25,8 +25,6 @@ type Props = {
   };
 };
 
-
-
 export default function CheckoutRecapModal({ isOpen, onClose, data }: Props) {
   const [mounted, setMounted] = useState(false);
 
@@ -90,10 +88,21 @@ export default function CheckoutRecapModal({ isOpen, onClose, data }: Props) {
     }
 
     // Items Table
-    const tableData = data.cart.map((item) => {
+    let tableData: any[] = [];
+    data.cart.forEach((item) => {
       const stockItem = data.stockMap[item.id];
-      const title = stockItem ? displayTitle(stockItem) : item.name;
-      return [title, item.qty.toString()];
+      if (stockItem && stockItem.items && Array.isArray(stockItem.items) && stockItem.items.length > 0) {
+        // È un set: mostra ogni componente
+        stockItem.items.forEach((comp: any) => {
+          tableData.push([
+            `[SET] ${displayTitle(stockItem)} → ${displayTitle(comp.item)}`,
+            (item.qty * comp.qty).toString()
+          ]);
+        });
+      } else {
+        const title = stockItem ? displayTitle(stockItem) : item.name;
+        tableData.push([title, item.qty.toString()]);
+      }
     });
 
     autoTable(doc, {
@@ -104,13 +113,13 @@ export default function CheckoutRecapModal({ isOpen, onClose, data }: Props) {
       headStyles: { fillColor: [0, 0, 0] },
     });
     const now = new Date();
-const dateTime = now.toLocaleString("it-IT", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
+    const dateTime = now.toLocaleString("it-IT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     // Footer
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 40;
@@ -228,6 +237,20 @@ const dateTime = now.toLocaleString("it-IT", {
                 <tbody className="divide-y">
                   {data.cart.map((item, idx) => {
                     const stockItem = data.stockMap[item.id];
+                    if (stockItem && stockItem.items && Array.isArray(stockItem.items) && stockItem.items.length > 0) {
+                      // È un set: mostra ogni componente
+                      return stockItem.items.map((comp: any, cidx: number) => (
+                        <tr key={idx + "-" + cidx}>
+                          <td className="px-4 py-3">
+                            <span className="text-xs text-zinc-500">[SET] {displayTitle(stockItem)} → </span>
+                            {displayTitle(comp.item)}
+                          </td>
+                          <td className="px-4 py-3 text-right font-medium">
+                            {item.qty * comp.qty}
+                          </td>
+                        </tr>
+                      ));
+                    }
                     const title = stockItem ? displayTitle(stockItem) : item.name;
                     return (
                       <tr key={idx}>

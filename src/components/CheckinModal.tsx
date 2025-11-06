@@ -80,15 +80,28 @@ function generateCheckinPDF(checkout: ProductionCheckout, checkedItems: ItemChec
     yPos += 10;
 
   // Items Table
-  const tableData = checkedItems.map((item) => {
+  let tableData: any[] = [];
+  checkedItems.forEach((item) => {
     const transaction = checkout.transactions.find((t) => t.id === item.transactionId);
-    const title = transaction ? displayTitle(transaction.item) : "—";
-    return [
-      title,
-      item.originalQty.toString(),
-      item.returnedQty.toString(),
-      item.originalQty === item.returnedQty ? "Completo" : "Parziale"
-    ];
+    if (transaction && (transaction as any).set && Array.isArray((transaction as any).set.items)) {
+      // È un set: mostra ogni componente
+      (transaction as any).set.items.forEach((comp: any) => {
+        tableData.push([
+          `[SET] ${displayTitle((transaction as any).set)} → ${displayTitle(comp.item)}`,
+          (item.returnedQty * comp.qty).toString(),
+          (item.originalQty * comp.qty).toString(),
+          item.originalQty === item.returnedQty ? "Completo" : "Parziale"
+        ]);
+      });
+    } else {
+      const title = transaction ? displayTitle(transaction.item) : "—";
+      tableData.push([
+        title,
+        item.originalQty.toString(),
+        item.returnedQty.toString(),
+        item.originalQty === item.returnedQty ? "Completo" : "Parziale"
+      ]);
+    }
   });
 
   autoTable(doc, {

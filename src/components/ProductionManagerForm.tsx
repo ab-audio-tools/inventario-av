@@ -208,7 +208,7 @@ export default function ProductionManagerForm({ cart, stockMap }: Props) {
                 Data Ritiro <span className="text-red-500">*</span>
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 required
                 value={form.pickupDate}
                 onChange={(e) => setForm({ ...form, pickupDate: e.target.value })}
@@ -220,7 +220,7 @@ export default function ProductionManagerForm({ cart, stockMap }: Props) {
                 Data Restituzione <span className="text-red-500">*</span>
               </label>
               <input
-                type="datetime-local"
+                type="date"
                 required
                 value={form.restitutionDate}
                 onChange={(e) => setForm({ ...form, restitutionDate: e.target.value })}
