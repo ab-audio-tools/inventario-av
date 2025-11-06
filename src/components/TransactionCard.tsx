@@ -7,7 +7,6 @@ import type { ProductionCheckout } from "@/types/checkout";
 
 type Props = { checkout: ProductionCheckout };
 
-
 function formatDateTime(dateString: string) {
   return new Date(dateString).toLocaleString("it-IT", {
     dateStyle: 'short',
@@ -67,10 +66,16 @@ export default function TransactionCard({ checkout }: Props) {
       doc.text(`Tecnico: ${checkout.techPerson}`, 14, yPos);
     }
 
-    // Items Table
-    const tableData = checkout.transactions.map((t) => {
+    // Items Table - raggruppa per set se necessario
+    const tableData: any[] = [];
+    const processedItems = new Set<number>();
+    
+    checkout.transactions.forEach((t) => {
+      if (processedItems.has(t.id)) return;
+      
       const title = displayTitle(t.item) || t.item.name || "—";
-      return [title, t.qty.toString()];
+      tableData.push([title, t.qty.toString()]);
+      processedItems.add(t.id);
     });
 
     autoTable(doc, {
