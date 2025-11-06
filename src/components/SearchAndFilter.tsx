@@ -84,11 +84,11 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
       <div className="flex gap-2 items-center">
         <SearchBar onChange={setQ} />
         <CategoryFilter categories={categories} value={cat} onChange={setCat} />
-        <div className="flex gap-1 border rounded-xl overflow-hidden shrink-0">
+        <div className="flex gap-1 border rounded-xl overflow-hidden shrink-0 h-10 items-stretch">
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className={`p-2 transition ${
+            className={`h-full px-3 transition flex items-center ${
               viewMode === "grid"
                 ? "bg-light-blue text-white"
                 : "bg-white text-zinc-600 hover:bg-zinc-50"
@@ -116,7 +116,7 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={`p-2 transition py-3 ${
+            className={`h-full px-3 transition flex items-center ${
               viewMode === "list"
                 ? "bg-light-blue text-white"
                 : "bg-white text-zinc-600 hover:bg-zinc-50"
@@ -146,7 +146,7 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
         </div>
       </div>
 
-      <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-3" : "space-y-2"}>
+      <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-3" : "space-y-2 py-2"}>
         {filteredItems.map((it) => (
           <div key={`item-${it.id}`} className="h-full">
             <ItemCard item={it} viewMode={viewMode} allSets={allSets} />

@@ -13,7 +13,7 @@ export default function CategoryFilter({
     <select
       value={value ?? "all"}
       onChange={(e) => onChange(e.target.value === "all" ? "all" : Number(e.target.value))}
-      className="rounded-xl border bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-black/10"
+      className="h-10 rounded-xl border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-black/10"
     >
       <option value="all">Tutte le categorie</option>
       {categories.map((c) => (
