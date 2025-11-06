@@ -29,7 +29,38 @@ export function writeCart(lines: CartLine[]) {
 }
 
 export function qtyFor(id: number, type: "item" | "set" = "item"): number {
-  return readCart().filter((l) => l.id === id && (l.type || "item") === type).reduce((a, l) => a + (Number(l.qty) || 0), 0);
+  const cart = getCart();
+  const entry = cart.find((x) => x.id === id && x.type === type);
+  return entry ? entry.qty : 0;
+}
+
+export function setQty(id: number, qty: number, type: "item" | "set" = "item"): void {
+  let cart = getCart();
+  const idx = cart.findIndex((x) => x.id === id && x.type === type);
+  if (idx >= 0) {
+    if (qty <= 0) {
+      cart.splice(idx, 1);
+    } else {
+      cart[idx] = { ...cart[idx], qty };
+    }
+  } else if (qty > 0) {
+    cart.push({ id, qty, type, name: `${type === "set" ? "Set" : "Item"} ${id}` });
+  }
+  saveCart(cart);
+  window.dispatchEvent(new CustomEvent("cart:change"));
+}
+
+export function inc(id: number, delta: number, maxQty: number, type: "item" | "set" = "item"): void {
+  const current = qtyFor(id, type);
+  const newQty = Math.max(0, Math.min(current + delta, maxQty));
+  setQty(id, newQty, type);
+}
+
+export function ensureMax(id: number, maxQty: number, type: "item" | "set" = "item"): void {
+  const current = qtyFor(id, type);
+  if (current > maxQty) {
+    setQty(id, maxQty, type);
+  }
 }
 
 export function cartCount(): number {
@@ -46,22 +77,6 @@ function mergeById(lines: CartLine[]): CartLine[] {
   return Array.from(map.values());
 }
 
-/** Cap globale (una tantum o ricorrente) al massimo consentito per quell'id */
-export function ensureMax(id: number, max: number, type: "item" | "set" = "item") {
-  const lines = readCart();
-  let changed = false;
-  const next = lines.map((l) => {
-    if (l.id !== id || (l.type || "item") !== type) return l;
-    const q = Math.min(Math.max(0, l.qty || 0), Math.max(0, max));
-    if (q !== l.qty) changed = true;
-    return { ...l, qty: q };
-  });
-  if (changed) {
-    writeCart(next);
-    emitCartChange();
-  }
-}
-
 export function normalizeCart() {
   writeCart(mergeById(readCart()));
 }
@@ -69,42 +84,12 @@ export function normalizeCart() {
 export function addToCartMerge(line: CartLine, max?: number) {
   const merged = mergeById([...readCart(), line]);
   if (typeof max === "number") {
-    const idx = merged.findIndex((l) => l.id === line.id);
+    const idx = merged.findIndex((l) => l.id === line.id && (l.type || "item") === (line.type || "item"));
     if (idx >= 0) merged[idx].qty = Math.min(Math.max(0, merged[idx].qty), Math.max(0, max));
   }
   writeCart(merged);
   emitCartChange();
   emitCartAdded(line);
-}
-
-export function setQty(id: number, qty: number, type: "item" | "set" = "item") {
-  const lines = readCart();
-  const nextQty = Math.max(0, Math.floor(Number(qty) || 0));
-
-  // rimuovi se 0, altrimenti imposta esattamente la qty
-  const idx = lines.findIndex(l => l.id === id && (l.type || "item") === type);
-  let next: CartLine[];
-  if (nextQty <= 0) {
-    next = idx >= 0 ? lines.filter(l => !(l.id === id && (l.type || "item") === type)) : lines;
-  } else {
-    if (idx >= 0) {
-      next = [...lines];
-      next[idx] = { ...next[idx], qty: nextQty };
-    } else {
-      next = [...lines, { id, name: "", qty: nextQty, type }];
-    }
-  }
-
-  writeCart(next);
-  emitCartChange();
-}
-
-export function inc(id: number, delta: number, max?: number, type: "item" | "set" = "item") {
-  const current = qtyFor(id, type);
-  let next = current + (Number(delta) || 0);
-  if (typeof max === "number") next = Math.min(Math.max(0, next), Math.max(0, max));
-  if (next === current) return; // niente da fare
-  setQty(id, next, type);
 }
 
 export function removeCartIndex(idx: number) {
@@ -132,4 +117,13 @@ export function emitCartChange() {
 
 export function emitCartAdded(line: CartLine) {
   window.dispatchEvent(new CustomEvent("cart:added", { detail: line }));
+}
+
+function getCart(): CartLine[] {
+  if (typeof window === "undefined") return [];
+  return safeParse(localStorage.getItem(KEY));
+}
+
+function saveCart(cart: CartLine[]) {
+  localStorage.setItem(KEY, JSON.stringify(cart));
 }
