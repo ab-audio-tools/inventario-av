@@ -77,13 +77,15 @@ export default function NewSetPage() {
             <div className="flex items-center gap-2 mb-2">
               <input className="w-full border rounded-xl px-3 py-2" placeholder="Cerca articoli..." value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
-            <div className="max-h-72 overflow-auto divide-y">
-              {filtered.map((it) => (
-                <button key={it.id} type="button" onClick={() => addComponent(it)} className="w-full text-left py-2 px-2 hover:bg-zinc-50">
-                  {(it.name || `${it.brand || ""} ${it.model || ""}`).trim() || `Item ${it.id}`}
-                </button>
-              ))}
-            </div>
+            {q.trim() && (
+              <div className="max-h-72 overflow-auto divide-y">
+                {filtered.map((it) => (
+                  <button key={it.id} type="button" onClick={() => addComponent(it)} className="w-full text-left py-2 px-2 hover:bg-zinc-50">
+                    {(it.name || `${it.brand || ""} ${it.model || ""}`).trim() || `Item ${it.id}`}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="border rounded-2xl p-3">
