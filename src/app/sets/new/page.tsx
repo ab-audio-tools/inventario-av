@@ -37,7 +37,7 @@ export default function NewSetPage() {
       body: JSON.stringify({
         name: form.name,
         imageUrl: form.imageUrl || null,
-        restricted: form.restricted,
+        restricted: !!form.restricted, // forza booleano
         items: components.map(c => ({ itemId: c.itemId, qty: c.qty })),
       }),
     });

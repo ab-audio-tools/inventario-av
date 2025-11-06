@@ -16,6 +16,9 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
+  // DEBUG: logga i set restituiti
+  // console.log("API /api/sets restituisce:", sets.map(s => ({ id: s.id, name: s.name, restricted: s.restricted })));
+
   // compute available quantity per set based on components
   const payload = sets.map((s) => {
     const available = s.items.length === 0

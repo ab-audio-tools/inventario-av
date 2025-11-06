@@ -25,7 +25,7 @@ type SetDto = {
   name: string;
   imageUrl?: string | null;
   available: number;
-  restricted?: boolean;
+  restricted?: boolean; // deve essere sempre presente!
   items: { itemId: number; qty: number; name?: string | null; brand?: string | null; model?: string | null }[];
 };
 
@@ -62,8 +62,9 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
   const filteredSets = useMemo(() => {
     const ql = q.toLowerCase();
     return allSets.filter(s => {
-      // Filtra i set restricted solo per ADMIN/TECH
-      if (s.restricted && userRole !== "ADMIN" && userRole !== "TECH") return false;
+      // Se restricted è undefined, trattalo come false (visibile a tutti)
+      const isRestricted = !!s.restricted;
+      if (isRestricted && userRole !== "ADMIN" && userRole !== "TECH") return false;
       if (!q) return true;
       return s.name.toLowerCase().includes(ql) || 
         s.items.some(i => (i.name || i.brand || i.model || "").toLowerCase().includes(ql));
