@@ -15,51 +15,76 @@ type ItemStock = {
   description?: string | null;
 };
 
+type SetStock = {
+  id: number;
+  name: string;
+  imageUrl?: string | null;
+  available: number;
+};
+
 export default function CartDrawer() {
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [stockMap, setStockMap] = useState<Record<number, ItemStock>>({});
+  const [itemMap, setItemMap] = useState<Record<number, ItemStock>>({});
+  const [setMap, setSetMap] = useState<Record<number, SetStock>>({});
 
   useEffect(() => {
     setCart(readCart());
 
-    // carica items con metadati completi
-    fetch("/api/items")
-      .then((r) => r.json())
-      .then((data) => {
-        const map: Record<number, ItemStock> = {};
-        (data.items || []).forEach((it: any) => {
-          map[it.id] = {
-            id: it.id,
-            quantity: it.quantity,
-            imageUrl: it.imageUrl,
-            name: it.name,
-            brand: it.brand,
-            model: it.model,
-            typology: it.typology,
-            category: it.category ?? null,
-            description: it.description,
-          };
-        });
-        setStockMap(map);
+    // carica items e sets con metadati completi
+    Promise.all([
+      fetch("/api/items").then(r => r.json()).catch(() => ({ items: [] })),
+      fetch("/api/sets").then(r => r.json()).catch(() => ({ sets: [] })),
+    ]).then(([itemsData, setsData]) => {
+      const itemMapLocal: Record<number, ItemStock> = {};
+      (itemsData.items || []).forEach((it: any) => {
+        itemMapLocal[it.id] = {
+          id: it.id,
+          quantity: it.quantity,
+          imageUrl: it.imageUrl,
+          name: it.name,
+          brand: it.brand,
+          model: it.model,
+          typology: it.typology,
+          category: it.category ?? null,
+          description: it.description,
+        };
+      });
+      setItemMap(itemMapLocal);
 
-        // Cap di eventuali quantità superiori allo stock
-        const current = readCart();
-        let changed = false;
-        const fixed = current.map((l) => {
-          const max = map[l.id]?.quantity;
-          if (typeof max === "number" && l.qty > max) {
-            changed = true;
-            return { ...l, qty: max };
-          }
-          return l;
-        });
-        if (changed) {
-          writeCart(fixed);
-          setCart(fixed);
-          emitCartChange();
+      const setMapLocal: Record<number, SetStock> = {};
+      (setsData.sets || []).forEach((s: any) => {
+        setMapLocal[s.id] = {
+          id: s.id,
+          name: s.name,
+          imageUrl: s.imageUrl,
+          available: s.available,
+        };
+      });
+      setSetMap(setMapLocal);
+
+      // Cap di eventuali quantità superiori allo stock
+      const current = readCart();
+      let changed = false;
+      const fixed = current.map((l) => {
+        const type = l.type || "item";
+        let max: number | undefined;
+        if (type === "set") {
+          max = setMapLocal[l.id]?.available;
+        } else {
+          max = itemMapLocal[l.id]?.quantity;
         }
-      })
-      .catch(() => {});
+        if (typeof max === "number" && l.qty > max) {
+          changed = true;
+          return { ...l, qty: max };
+        }
+        return l;
+      });
+      if (changed) {
+        writeCart(fixed);
+        setCart(fixed);
+        emitCartChange();
+      }
+    });
   }, []);
 
   function updateCart(next: CartLine[]) {
@@ -68,20 +93,25 @@ export default function CartDrawer() {
     emitCartChange();
   }
 
-  function boundedQty(id: number, desired: number) {
-    const stock = stockMap[id]?.quantity ?? Infinity;
-    return Math.max(0, Math.min(desired, stock));
+  function boundedQty(id: number, desired: number, type: "item" | "set" = "item") {
+    let max: number | undefined;
+    if (type === "set") {
+      max = setMap[id]?.available;
+    } else {
+      max = itemMap[id]?.quantity;
+    }
+    return Math.max(0, Math.min(desired, max ?? Infinity));
   }
 
-  function setLineQty(id: number, qty: number) {
-    const nextQty = boundedQty(id, qty);
-    setQty(id, nextQty);
+  function setLineQty(id: number, qty: number, type: "item" | "set" = "item") {
+    const nextQty = boundedQty(id, qty, type);
+    setQty(id, nextQty, type);
     setCart(readCart());
   }
 
-  function incLine(id: number, delta: number) {
-    const current = cart.find((l) => l.id === id)?.qty || 0;
-    setLineQty(id, current + delta);
+  function incLine(id: number, delta: number, type: "item" | "set" = "item") {
+    const current = cart.find((l) => l.id === id && (l.type || "item") === type)?.qty || 0;
+    setLineQty(id, current + delta, type);
   }
 
   const totalCount = useMemo(() => cart.reduce((a, l) => a + l.qty, 0), [cart]);
@@ -109,19 +139,23 @@ export default function CartDrawer() {
       ) : (
         <div className="space-y-2">
           {cart.map((c, i) => {
-            const raw = stockMap[c.id];
-            const stock = raw?.quantity;
-            const imageUrl = raw?.imageUrl ?? c.imageUrl ?? null;
+            const type = c.type || "item";
+            const isSet = type === "set";
+            
+            const itemData = !isSet ? itemMap[c.id] : null;
+            const setData = isSet ? setMap[c.id] : null;
+            
+            const stock = isSet ? setData?.available : itemData?.quantity;
+            const imageUrl = isSet ? (setData?.imageUrl ?? c.imageUrl ?? null) : (itemData?.imageUrl ?? c.imageUrl ?? null);
+            
+            // titolo visuale
+            const display = isSet ? (setData?.name || c.name) : (itemData ? displayTitle(itemData) : c.name);
 
-            // titolo visuale anche nel carrello (brand+model o name)
-            const display = raw ? displayTitle(raw) : c.name;
-
-            const available =
-              typeof stock === "number" ? Math.max(0, stock - c.qty) : undefined;
+            const available = typeof stock === "number" ? Math.max(0, stock - c.qty) : undefined;
 
             return (
               <div
-                key={`${c.id}-${i}`}
+                key={`${type}-${c.id}-${i}`}
                 className="bg-white p-3 rounded-2xl border flex items-center gap-3 min-h-[78px]"
               >
                 {/* immagine sx */}
@@ -138,18 +172,26 @@ export default function CartDrawer() {
 
                 {/* centro: titolo + meta + descrizione breve */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{display}</div>
+                  <div className="font-medium truncate">
+                    {isSet && <span className="text-xs text-zinc-400 mr-1">[Set]</span>}
+                    {display}
+                  </div>
                   <div className="text-xs text-zinc-500">
-                    {raw?.typology ? `${raw.typology} · ` : ""}
-                    {raw?.category?.name ?? "—"}
+                    {!isSet && itemData && (
+                      <>
+                        {itemData.typology ? `${itemData.typology} · ` : ""}
+                        {itemData.category?.name ?? "—"}
+                      </>
+                    )}
+                    {isSet && "Set"}
                     {typeof stock === "number" ? (
                       <> · Disponibili: {available ?? 0}</>
                     ) : (
                       <> · Disponibili: —</>
                     )}
                   </div>
-                  {raw?.description && (
-                    <div className="text-xs text-zinc-600 line-clamp-1">{raw.description}</div>
+                  {!isSet && itemData?.description && (
+                    <div className="text-xs text-zinc-600 line-clamp-1">{itemData.description}</div>
                   )}
                 </div>
 
@@ -158,7 +200,7 @@ export default function CartDrawer() {
                   <div className="inline-flex items-center border rounded-xl overflow-hidden">
                     <button
                       type="button"
-                      onClick={() => incLine(c.id, -1)}
+                      onClick={() => incLine(c.id, -1, type)}
                       disabled={c.qty <= 0}
                       className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
                       aria-label="Diminuisci"
@@ -168,7 +210,7 @@ export default function CartDrawer() {
                     <div className="px-3 py-1.5 text-sm w-12 text-center tabular-nums">{c.qty}</div>
                     <button
                       type="button"
-                      onClick={() => incLine(c.id, +1)}
+                      onClick={() => incLine(c.id, +1, type)}
                       disabled={typeof stock === "number" ? c.qty >= stock : false}
                       className="px-3 py-1.5 text-sm disabled:opacity-40 select-none"
                       aria-label="Aumenta"
