@@ -98,7 +98,7 @@ export default function SetCard({ set, userRole: userRoleProp }: Props) {
           </div>
         </div>
         <div className="text-xs text-zinc-500 mt-1 line-clamp-2">
-          Inclusi: {set.items.map((i) => `${i.qty}x ${i.name || i.model || i.itemId}`).join(", ")}
+          Inclusi: {set.items.map((i) => `${i.qty}x ${i.name || (i.brand && i.model ? `${i.brand} ${i.model}` : i.brand || i.model || `Item ${i.itemId}`)}`).join(", ")}
         </div>
 
         {!isGuest && (
@@ -134,7 +134,7 @@ export default function SetCard({ set, userRole: userRoleProp }: Props) {
               <div><strong>Componenti:</strong></div>
               <ul className="list-disc list-inside ml-2 space-y-1">
                 {set.items.map((i) => (
-                  <li key={i.itemId}>{i.qty}x {i.name || i.brand || i.model || `Item ${i.itemId}`}</li>
+                  <li key={i.itemId}>{i.qty}x {i.name || (i.brand && i.model ? `${i.brand} ${i.model}` : i.brand || i.model || `Item ${i.itemId}`)}</li>
                 ))}
               </ul>
             </div>
