@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -42,6 +41,7 @@ export default function Navbar() {
   const canAccessNewSet = canAccessNewItem;
   const canAccessTransactions = !!user && user.role !== "GUEST"; // i guest non vedono Movimenti
   const canAccessImportExport = user?.role === "ADMIN" || user?.role === "TECH" || user?.role === "OFFICE";
+  const canAccessCategories = user?.role === "ADMIN" || user?.role === "TECH";
 
   const showCart = !!user && user.role !== "GUEST";
 
@@ -55,6 +55,9 @@ export default function Navbar() {
               <Link href="/items/new" className="text-sm text-zinc-700 hover:text-black transition">Nuovo articolo</Link>
               <Link href="/sets/new" className="text-sm text-zinc-700 hover:text-black transition">Nuovo Set</Link>
             </>
+          )}
+          {canAccessCategories && (
+            <Link href="/categories" className="text-sm text-zinc-700 hover:text-black transition">Gestione Categorie</Link>
           )}
           {canAccessTransactions && (
             <Link href="/transactions" className="text-sm text-zinc-700 hover:text-black transition">Movimenti</Link>

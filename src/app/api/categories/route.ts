@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/categories -> lista categorie
+// GET /api/categories -> lista categorie con conteggio item
 export async function GET() {
   const categories = await prisma.category.findMany({
     orderBy: { name: "asc" },
+    include: {
+      _count: {
+        select: { items: true }
+      }
+    }
   });
   return NextResponse.json({ categories });
 }
