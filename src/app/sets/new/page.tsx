@@ -47,7 +47,9 @@ export default function NewSetPage() {
       return;
     }
     alert("Set creato");
-    window.location.href = "/";
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 300); // piccolo delay per sicurezza
   }
 
   return (
