@@ -10,7 +10,8 @@
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
     "migrate": "node scripts/migrate.js",
-    "clean": "rm -rf build"
+    "clean": "rm -rf build",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
@@ -42,5 +43,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5"
+  },
+  "scripts": {
+    "vercel-build": "prisma migrate deploy && prisma generate && next build"
   }
 }
