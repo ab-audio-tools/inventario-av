@@ -116,7 +116,7 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={`p-2 transition ${
+            className={`p-2 transition py-3 ${
               viewMode === "list"
                 ? "bg-light-blue text-white"
                 : "bg-white text-zinc-600 hover:bg-zinc-50"
@@ -160,7 +160,7 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
       </div>
 
       {/* {viewMode === "grid" ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 py-3">
           {filteredItems.map((it) => (
             <div key={`item-${it.id}`} className="h-full">
               <ItemCard item={it} />
