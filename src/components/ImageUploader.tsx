@@ -2,8 +2,8 @@
 import { useCallback, useRef, useState } from "react";
 
 type Props = {
-  value?: string;                        // URL già presente (se stai modificando)
-  onUploaded: (url: string) => void;     // callback con URL salvato
+  value?: string;
+  onUploaded: (url: string) => void;
   label?: string;
   maxSizeMB?: number;
 };
@@ -13,6 +13,44 @@ export default function ImageUploader({ value, onUploaded, label = "Immagine", m
   const [preview, setPreview] = useState<string | null>(value || null);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Controlla se Cloudinary è configurato
+  const cloudinaryCloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const cloudinaryUploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  const useCloudinary = Boolean(cloudinaryCloudName && cloudinaryUploadPreset);
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", cloudinaryUploadPreset!);
+    fd.append("folder", "inventario-av");
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`,
+      { method: "POST", body: fd }
+    );
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error?.error?.message || "Upload Cloudinary fallito");
+    }
+
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const uploadToLocal = async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Upload fallito");
+    }
+
+    return data.url;
+  };
 
   const onFiles = useCallback(async (files: FileList | null) => {
     if (!files || !files[0]) return;
@@ -33,29 +71,30 @@ export default function ImageUploader({ value, onUploaded, label = "Immagine", m
     setUploading(true);
 
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setPreview(value || null); // rollback preview
-        alert(data?.error || "Upload fallito");
-        return;
-      }
-      onUploaded(data.url);
-      setPreview(data.url);
+      const url = useCloudinary 
+        ? await uploadToCloudinary(file)
+        : await uploadToLocal(file);
+      
+      onUploaded(url);
+      setPreview(url);
     } catch (e: any) {
       setPreview(value || null);
-      alert("Errore di rete durante l'upload");
+      alert(e.message || "Errore di rete durante l'upload");
     } finally {
       setUploading(false);
     }
-  }, [maxSizeMB, onUploaded, value]);
+  }, [maxSizeMB, onUploaded, value, useCloudinary, cloudinaryCloudName, cloudinaryUploadPreset]);
 
   return (
     <div className="w-full">
-      {label && <label className="text-sm text-zinc-600">{label}</label>}
+      <div className="flex items-center justify-between">
+        {label && <label className="text-sm text-zinc-600">{label}</label>}
+        {useCloudinary && (
+          <span className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
+            ☁️ Cloudinary
+          </span>
+        )}
+      </div>
 
       <div
         className={`mt-1 rounded-2xl border-2 border-dashed p-4 transition
@@ -72,7 +111,6 @@ export default function ImageUploader({ value, onUploaded, label = "Immagine", m
       >
         <div className="flex items-center gap-4">
           <div className="w-24 h-24 rounded-xl bg-zinc-100 overflow-hidden shrink-0 flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             {preview ? (
               <img src={preview} alt="preview" className="max-w-full max-h-full object-contain" />
             ) : (

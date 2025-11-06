@@ -87,6 +87,7 @@ export default function ItemCard({ item, viewMode = "grid", allSets }: { item: I
       { id: item.id, name: title, qty: 1, imageUrl: item.imageUrl },
       item.quantity
     );
+    
   }
   function removeOne() {
     if (isGuest) return;
@@ -109,7 +110,7 @@ export default function ItemCard({ item, viewMode = "grid", allSets }: { item: I
         <div className="relative w-20 h-20 bg-zinc-100 rounded-lg overflow-hidden shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {item.imageUrl ? (
-            <img src={item.imageUrl} alt={title} className="object-cover w-full h-full" />
+            <img src={item.imageUrl?.replace('/upload/', '/upload/w_200,h_200,c_fill,f_auto,q_auto/')} alt={title} className="object-cover w-full h-full" />
           ) : (
             <div className="w-full h-full grid place-content-center text-xs text-zinc-400">
               no image
@@ -253,7 +254,7 @@ export default function ItemCard({ item, viewMode = "grid", allSets }: { item: I
       <div className="relative w-28 h-28 bg-zinc-100 rounded-xl overflow-hidden shrink-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {item.imageUrl ? (
-          <img src={item.imageUrl} alt={title} className="object-cover w-full h-full" />
+          <img src={item.imageUrl?.replace('/upload/', '/upload/w_200,h_200,c_fill,f_auto,q_auto/')}alt={title} className="object-cover w-full h-full" />
         ) : (
           <div className="w-full h-full grid place-content-center text-sm text-zinc-400">
             no image
