@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { addToCartMerge, inc, qtyFor, ensureMax, setQty } from "@/lib/cart";
+import { addToCartMerge, inc, qtyFor, ensureMax, setQty, readCart } from "@/lib/cart";
 import { displayTitle } from "@/lib/format";
 import ProductDetailModal from "@/components/ProductDetailModal";
 import ItemEditModal from "@/components/ItemEditModal";
@@ -18,11 +18,12 @@ type Item = {
   category?: { id: number; name: string } | null;
 };
 
-export default function ItemCard({ item, viewMode = "grid" }: { item: Item; viewMode?: "grid" | "list" }) {
+export default function ItemCard({ item, viewMode = "grid", allSets }: { item: Item; viewMode?: "grid" | "list"; allSets?: any[] }) {
   const [inCartQty, setInCartQty] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [reservedBySet, setReservedBySet] = useState(0);
 
   const isGuest = userRole === "GUEST";
   const canEdit = userRole === "ADMIN" || userRole === "TECH";
@@ -46,19 +47,37 @@ export default function ItemCard({ item, viewMode = "grid" }: { item: Item; view
     const refresh = () => {
       ensureMax(item.id, item.quantity);
       setInCartQty(qtyFor(item.id));
+      
+      // Calcola quanti pezzi sono riservati dai set
+      if (allSets && allSets.length > 0) {
+        const cart = readCart();
+        let reserved = 0;
+        cart.forEach(cartLine => {
+          if (cartLine.type === "set") {
+            const setData = allSets.find(s => s.id === cartLine.id);
+            if (setData && setData.items) {
+              const itemInSet = setData.items.find((si: any) => si.itemId === item.id);
+              if (itemInSet) {
+                reserved += cartLine.qty * itemInSet.qty;
+              }
+            }
+          }
+        });
+        setReservedBySet(reserved);
+      }
     };
     refresh();
     const onChange = () => refresh();
     window.addEventListener("cart:change", onChange as any);
     return () => window.removeEventListener("cart:change", onChange as any);
-  }, [item.id, item.quantity]);
+  }, [item.id, item.quantity, allSets]);
 
   const title = displayTitle(item);
   const available = useMemo(
-    () => Math.max(0, item.quantity - inCartQty),
-    [item.quantity, inCartQty]
+    () => Math.max(0, item.quantity - inCartQty - reservedBySet),
+    [item.quantity, inCartQty, reservedBySet]
   );
-  const active = inCartQty > 0;
+  const active = inCartQty > 0 || reservedBySet > 0;
 
   function addOne() {
     if (available <= 0) return;

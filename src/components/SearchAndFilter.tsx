@@ -138,7 +138,20 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
         </div>
       </div>
 
-      {viewMode === "grid" ? (
+      <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-2"}>
+        {filteredItems.map((it) => (
+          <div key={`item-${it.id}`} className="h-full">
+            <ItemCard item={it} viewMode={viewMode} allSets={allSets} />
+          </div>
+        ))}
+        {filteredSets.map((s) => (
+          <div key={`set-${s.id}`} className="h-full">
+            <SetCard set={s} userRole={userRole} />
+          </div>
+        ))}
+      </div>
+
+      {/* {viewMode === "grid" ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
           {filteredItems.map((it) => (
             <div key={`item-${it.id}`} className="h-full">
@@ -164,7 +177,7 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
             </div>
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 }
