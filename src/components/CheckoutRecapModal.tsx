@@ -87,30 +87,84 @@ export default function CheckoutRecapModal({ isOpen, onClose, data }: Props) {
       doc.text(`Tecnico: ${data.techPerson}`, 14, yPos);
     }
 
-    // Items Table
-    let tableData: any[] = [];
-    data.cart.forEach((item) => {
-      const stockItem = data.stockMap[item.id];
-      if (stockItem && stockItem.items && Array.isArray(stockItem.items) && stockItem.items.length > 0) {
-        // È un set: mostra ogni componente
-        stockItem.items.forEach((comp: any) => {
-          tableData.push([
-            `[SET] ${displayTitle(stockItem)} → ${displayTitle(comp.item)}`,
-            (item.qty * comp.qty).toString()
-          ]);
+    // Items Table - raggruppa per setId se presente nelle transactionResults
+    const tableData: any[] = [];
+    const setGroups = new Map<number, any[]>();
+    const standaloneItems: any[] = [];
+    
+    // Usa transactionResults che ha le info complete dal server
+    if (data.transactionResults && Array.isArray(data.transactionResults)) {
+      data.transactionResults.forEach((result: any) => {
+        if (result.set) {
+          // È parte di un set
+          const setId = result.set.id;
+          if (!setGroups.has(setId)) {
+            setGroups.set(setId, []);
+          }
+          setGroups.get(setId)?.push(result);
+        } else {
+          // Item singolo
+          standaloneItems.push(result);
+        }
+      });
+
+      // Aggiungi i set con i loro componenti
+      setGroups.forEach((results, setId) => {
+        const firstResult = results[0];
+        const setName = firstResult.set.name || `Set ${setId}`;
+        
+        // Costruisci la cella del set con componenti
+        let setCellContent = `${setName}\n\nInclusi:`;
+        results.forEach(r => {
+          const itemTitle = displayTitle(r.item) || r.item.name || "—";
+          setCellContent += `\n- ${r.tr.qty}x ${itemTitle}`;
         });
-      } else {
-        const title = stockItem ? displayTitle(stockItem) : item.name;
-        tableData.push([title, item.qty.toString()]);
-      }
-    });
+        
+        // La qty del set è la qty della prima transaction divisa per la qty del primo componente nel set
+        const setQty = results[0].tr.qty;
+        
+        tableData.push([setCellContent, setQty.toString()]);
+      });
+
+      // Aggiungi item singoli
+      standaloneItems.forEach((result) => {
+        const title = displayTitle(result.item) || result.item.name || "—";
+        tableData.push([title, result.tr.qty.toString()]);
+      });
+    } else {
+      // Fallback: usa cart e stockMap come prima
+      data.cart.forEach((item) => {
+        const stockItem = data.stockMap[item.id];
+        if (stockItem && stockItem.items && Array.isArray(stockItem.items) && stockItem.items.length > 0) {
+          // È un set: mostra ogni componente
+          stockItem.items.forEach((comp: any) => {
+            tableData.push([
+              `[SET] ${displayTitle(stockItem)} → ${displayTitle(comp.item)}`,
+              (item.qty * comp.qty).toString()
+            ]);
+          });
+        } else {
+          const title = stockItem ? displayTitle(stockItem) : item.name;
+          tableData.push([title, item.qty.toString()]);
+        }
+      });
+    }
 
     autoTable(doc, {
       startY: yPos + 10,
       head: [["Articolo", "Quantità"]],
       body: tableData,
-      styles: { fontSize: 9 },
+      styles: { 
+        fontSize: 9,
+        cellPadding: 3,
+      },
       headStyles: { fillColor: [0, 0, 0] },
+      columnStyles: {
+        0: { cellWidth: 140 },
+        1: { cellWidth: 30, halign: 'right' }
+      },
+      rowPageBreak: 'auto',
+      tableLineWidth: 0.1,
     });
     const now = new Date();
     const dateTime = now.toLocaleString("it-IT", {

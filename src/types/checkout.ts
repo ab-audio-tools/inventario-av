@@ -30,6 +30,8 @@ export type ProductionCheckout = {
   transactions: Array<{
     id: number;
     qty: number;
+    setId?: number | null;
+    setName?: string | null;
     item: {
       id: number;
       name: string | null;
