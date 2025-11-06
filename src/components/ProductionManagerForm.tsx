@@ -11,7 +11,7 @@ type ProductionData = {
   ente: string;
   email: string;
   telephone: string;
-  pickupDate: string; // ora sarà in formato "2024-01-01T09:00"
+  pickupDate: string; // ora sarà in formato "2024-01-01"
   restitutionDate: string;
   techPerson: string;
   tosAccepted: boolean;
