@@ -7,7 +7,6 @@ export async function GET() {
   const isPrivileged = session && (session.role === "ADMIN" || session.role === "TECH");
 
   const items = await prisma.item.findMany({
-    where: isPrivileged ? undefined : { restricted: false },
     include: { category: true },
     orderBy: { createdAt: "desc" },
   });
@@ -50,7 +49,6 @@ export async function POST(req: Request) {
         brand, model, name, typology,
         sku, quantity: Number(quantity) || 0,
         description, imageUrl,
-        restricted: Boolean(restricted),
         categoryId: Number(categoryId),
       },
       include: { category: true },

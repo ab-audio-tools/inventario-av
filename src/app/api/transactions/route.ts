@@ -71,7 +71,7 @@ export async function POST(req: Request) {
         const lineQty = Number(it.qty);
 
         // Check if it's a Set first
-        const set = await tx.set.findUnique({
+        const set = await (tx as any).set.findUnique({
           where: { id: lineId },
           include: { items: true },
         });
@@ -106,9 +106,12 @@ export async function POST(req: Request) {
         // Otherwise treat as single Item
         const item = await tx.item.findUnique({ where: { id: lineId } });
         if (!item) throw new Error(`Item ${it.id} not found`);
-        if (item.restricted && !["ADMIN", "TECH"].includes(session.role)) {
-          throw new Error(`Operazione non consentita su articolo riservato (${item.name || item.brand || item.model || item.id})`);
+
+        const isRestrictedItem = Boolean((item as any)?.restricted); // campo assente nello schema: fallback
+        if (isRestrictedItem && !["ADMIN", "TECH"].includes(session.role)) {
+          throw new Error(`Operazione non consentita su articolo riservato (${item.name || (item as any).brand || (item as any).model || item.id})`);
         }
+
         const delta = type === "CHECKOUT" ? -lineQty : lineQty;
         const newQty = item.quantity + delta;
         if (newQty < 0) throw new Error(`Stock insufficiente per ${item.name}`);

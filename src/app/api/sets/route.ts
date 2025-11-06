@@ -6,7 +6,7 @@ export async function GET() {
   const session = await getSession();
   const isPrivileged = session && (session.role === "ADMIN" || session.role === "TECH");
 
-  const sets = await prisma.set.findMany({
+  const sets = await (prisma as any).set.findMany({
     where: isPrivileged ? undefined : { restricted: false },
     include: {
       items: {
@@ -16,23 +16,23 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  // DEBUG: logga i set restituiti
-  // console.log("API /api/sets restituisce:", sets.map(s => ({ id: s.id, name: s.name, restricted: s.restricted })));
-
   // compute available quantity per set based on components
-  const payload = sets.map((s) => {
+  const payload = sets.map((s: any) => {
     const available = s.items.length === 0
       ? 0
-      : Math.max(0, Math.min(
-          ...s.items.map((si) => Math.floor((si.item.quantity || 0) / Math.max(1, si.qty)))
-        ));
+      : Math.max(
+          0,
+          Math.min(
+            ...s.items.map((si: any) => Math.floor((si.item.quantity || 0) / Math.max(1, si.qty)))
+          )
+        );
     return {
       id: s.id,
       name: s.name,
       imageUrl: s.imageUrl,
       restricted: s.restricted,
       available,
-      items: s.items.map((si) => ({
+      items: s.items.map((si: any) => ({
         itemId: si.itemId,
         qty: si.qty,
         name: si.item.name,
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     .map((it: any) => ({ itemId: Number(it.itemId), qty: Math.max(1, Number(it.qty) || 1) }))
     .filter((it: any) => Number.isFinite(it.itemId) && it.itemId > 0);
 
-  const set = await prisma.set.create({
+  const set = await (prisma as any).set.create({
     data: {
       name,
       imageUrl,
@@ -75,7 +75,6 @@ export async function POST(req: Request) {
       },
     },
   });
-
   return NextResponse.json({ set });
 }
 

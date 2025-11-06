@@ -7,7 +7,7 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
   const setId = Number(id);
   if (!Number.isFinite(setId)) return NextResponse.json({ error: "ID non valido" }, { status: 400 });
 
-  const set = await prisma.set.findUnique({
+  const set = await (prisma as any).set.findUnique({
     where: { id: setId },
     include: { items: { include: { item: true } } },
   });
@@ -37,15 +37,15 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
 
   // update set
   const result = await prisma.$transaction(async (tx) => {
-    const updated = await tx.set.update({ where: { id: setId }, data });
+    const updated = await (tx as any).set.update({ where: { id: setId }, data });
     if (Array.isArray(items)) {
       // replace all components
-      await tx.setItem.deleteMany({ where: { setId } });
+      await (tx as any).setItem.deleteMany({ where: { setId } });
       const sanitized = items
         .map((it: any) => ({ itemId: Number(it.itemId), qty: Math.max(1, Number(it.qty) || 1) }))
         .filter((it: any) => Number.isFinite(it.itemId) && it.itemId > 0);
       if (sanitized.length > 0) {
-        await tx.setItem.createMany({
+        await (tx as any).setItem.createMany({
           data: sanitized.map((si: any) => ({ setId, itemId: si.itemId, qty: si.qty })),
           skipDuplicates: true,
         });
@@ -68,8 +68,8 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
   if (!Number.isFinite(setId)) return NextResponse.json({ error: "ID non valido" }, { status: 400 });
 
   await prisma.$transaction(async (tx) => {
-    await tx.setItem.deleteMany({ where: { setId } });
-    await tx.set.delete({ where: { id: setId } });
+    await (tx as any).setItem.deleteMany({ where: { setId } });
+    await (tx as any).set.delete({ where: { id: setId } });
   });
 
   return NextResponse.json({ ok: true });
