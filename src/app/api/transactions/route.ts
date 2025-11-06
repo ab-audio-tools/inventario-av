@@ -83,7 +83,7 @@ export async function POST(req: Request) {
           if (set.restricted && !["ADMIN", "TECH"].includes(session.role)) {
             throw new Error(`Operazione non consentita su set riservato (${set.name})`);
           }
-          // Process each component
+          // Process each component and save set info
           for (const comp of set.items) {
             const compItem = await tx.item.findUnique({ where: { id: comp.itemId } });
             if (!compItem) throw new Error(`Item componente ${comp.itemId} non trovato`);
@@ -98,7 +98,9 @@ export async function POST(req: Request) {
                 qty: lineQty * comp.qty,
                 note: transactionNote,
                 productionCheckoutId: productionCheckoutId || null,
-              },
+                setId: set.id,
+                setName: set.name,
+              } as any, // Cast temporaneo fino a quando non rigeneri il client
             });
             results.push({ item: compItem, tr, newQty, set: { id: set.id, name: set.name } });
           }
@@ -125,7 +127,9 @@ export async function POST(req: Request) {
             qty: lineQty,
             note: transactionNote,
             productionCheckoutId: productionCheckoutId || null,
-          },
+            setId: null,
+            setName: null,
+          } as any, // Cast temporaneo fino a quando non rigeneri il client
         });
         results.push({ item, tr, newQty });
       }

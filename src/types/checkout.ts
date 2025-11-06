@@ -2,6 +2,8 @@ export type Transaction = {
   id: number;
   qty: number;
   itemId: number;
+  setId?: number | null;
+  setName?: string | null;
   item: {
     id: number;
     name: string | null;

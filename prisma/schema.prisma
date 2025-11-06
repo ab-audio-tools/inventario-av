@@ -93,6 +93,8 @@ productionCheckout ProductionCheckout? @relation(fields: [productionCheckoutId],
 type TransType
 qty Int
 note String?
+setId Int? // ID del set se questa transazione fa parte di un set
+setName String? // Nome del set per riferimento veloce
 createdAt DateTime @default(now())
 }
 

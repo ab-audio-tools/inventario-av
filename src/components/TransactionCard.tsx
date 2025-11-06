@@ -66,24 +66,64 @@ export default function TransactionCard({ checkout }: Props) {
       doc.text(`Tecnico: ${checkout.techPerson}`, 14, yPos);
     }
 
-    // Items Table - raggruppa per set se necessario
+    // Items Table - raggruppa per setId se presente
     const tableData: any[] = [];
-    const processedItems = new Set<number>();
+    const processedTransactions = new Set<number>();
     
-    checkout.transactions.forEach((t) => {
-      if (processedItems.has(t.id)) return;
+    // Raggruppa transazioni per setId
+    const setGroups = new Map<number, any[]>();
+    const standaloneItems: any[] = [];
+    
+    checkout.transactions.forEach((t: any) => {
+      if (t.setId) {
+        if (!setGroups.has(t.setId)) {
+          setGroups.set(t.setId, []);
+        }
+        setGroups.get(t.setId)?.push(t);
+      } else {
+        standaloneItems.push(t);
+      }
+    });
+
+    // Aggiungi i set con i loro componenti
+    setGroups.forEach((transactions, setId) => {
+      const firstTx = transactions[0];
+      const setName = firstTx.setName || `Set ${setId}`;
       
+      // Calcola quantità del set (assumendo che tutte le tx abbiano proporzioni coerenti)
+      const setQty = Math.floor(transactions[0].qty / transactions.find(tx => tx.itemId === transactions[0].itemId)?.qty || 1);
+      
+      // Costruisci la cella del set con componenti
+      let setCellContent = `${setName}\n\nInclusi:`;
+      transactions.forEach(t => {
+        const itemTitle = displayTitle(t.item) || t.item.name || "—";
+        setCellContent += `\n- ${t.qty}x ${itemTitle}`;
+      });
+      
+      tableData.push([setCellContent, setQty.toString()]);
+    });
+
+    // Aggiungi item singoli
+    standaloneItems.forEach((t) => {
       const title = displayTitle(t.item) || t.item.name || "—";
       tableData.push([title, t.qty.toString()]);
-      processedItems.add(t.id);
     });
 
     autoTable(doc, {
       startY: yPos + 10,
       head: [["Articolo", "Quantità"]],
       body: tableData,
-      styles: { fontSize: 9 },
+      styles: { 
+        fontSize: 9,
+        cellPadding: 3,
+      },
       headStyles: { fillColor: [0, 0, 0] },
+      columnStyles: {
+        0: { cellWidth: 140 },
+        1: { cellWidth: 30, halign: 'right' }
+      },
+      rowPageBreak: 'auto',
+      tableLineWidth: 0.1,
     });
 
     // Footer
