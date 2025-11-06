@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SearchBar from "@/components/SearchBar";
 import CategoryFilter from "@/components/CategoryFilter";
 import ItemCard from "@/components/ItemCard";
@@ -25,6 +25,7 @@ type SetDto = {
   name: string;
   imageUrl?: string | null;
   available: number;
+  restricted?: boolean;
   items: { itemId: number; qty: number; name?: string | null; brand?: string | null; model?: string | null }[];
 };
 
@@ -36,6 +37,14 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<"all" | number>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then(r => r.json())
+      .then(d => setUserRole(d.user?.role || null))
+      .catch(() => setUserRole(null));
+  }, []);
 
   const filteredItems = useMemo(() => {
     const ql = q.toLowerCase();
@@ -53,11 +62,13 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
   const filteredSets = useMemo(() => {
     const ql = q.toLowerCase();
     return allSets.filter(s => {
+      // Filtra i set restricted solo per ADMIN/TECH
+      if (s.restricted && userRole !== "ADMIN" && userRole !== "TECH") return false;
       if (!q) return true;
       return s.name.toLowerCase().includes(ql) || 
         s.items.some(i => (i.name || i.brand || i.model || "").toLowerCase().includes(ql));
     });
-  }, [q, allSets]);
+  }, [q, allSets, userRole]);
 
   return (
     <div className="w-full">
@@ -135,7 +146,7 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
           ))}
           {filteredSets.map((s) => (
             <div key={`set-${s.id}`} className="h-full">
-              <SetCard set={s} />
+              <SetCard set={s} userRole={userRole} />
             </div>
           ))}
         </div>
@@ -148,7 +159,7 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
           ))}
           {filteredSets.map((s) => (
             <div key={`set-${s.id}`}>
-              <SetCard set={s} />
+              <SetCard set={s} userRole={userRole} />
             </div>
           ))}
         </div>

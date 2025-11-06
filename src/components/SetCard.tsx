@@ -11,11 +11,24 @@ type SetDto = {
   items: { itemId: number; qty: number; name?: string | null; brand?: string | null; model?: string | null }[];
 };
 
-export default function SetCard({ set }: { set: SetDto }) {
+type Props = {
+  set: SetDto;
+  userRole?: string | null;
+};
+
+export default function SetCard({ set, userRole: userRoleProp }: Props) {
   const [inCartQty, setInCartQty] = useState(0);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(userRoleProp ?? null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+
+  useEffect(() => {
+    if (userRoleProp !== undefined) {
+      setUserRole(userRoleProp);
+      return;
+    }
+    fetch("/api/auth/session").then(r => r.json()).then(d => setUserRole(d.user?.role || null)).catch(() => setUserRole(null));
+  }, [userRoleProp]);
 
   const isGuest = userRole === "GUEST";
   const canEdit = userRole === "ADMIN" || userRole === "TECH";
@@ -23,15 +36,8 @@ export default function SetCard({ set }: { set: SetDto }) {
   const active = inCartQty > 0;
 
   useEffect(() => {
-    fetch("/api/auth/session").then(r => r.json()).then(d => setUserRole(d.user?.role || null)).catch(() => setUserRole(null));
-    const refresh = () => {
-      ensureMax(set.id, set.available, "set");
-      setInCartQty(qtyFor(set.id, "set"));
-    };
-    refresh();
-    const onChange = () => refresh();
-    window.addEventListener("cart:change", onChange as any);
-    return () => window.removeEventListener("cart:change", onChange as any);
+    ensureMax(set.id, set.available, "set");
+    setInCartQty(qtyFor(set.id, "set"));
   }, [set.id, set.available]);
 
   function addOne() {
