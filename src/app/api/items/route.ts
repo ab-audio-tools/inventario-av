@@ -4,13 +4,17 @@ import { getSession } from "@/lib/auth";
 
 export async function GET() {
   const session = await getSession();
-  const isPrivileged = session && (session.role === "ADMIN" || session.role === "TECH");
+  const isPrivileged = !!session && (session.role === "ADMIN" || session.role === "TECH");
 
   const items = await prisma.item.findMany({
     include: { category: true },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json({ items });
+
+  // Nascondi item riservati ai non privilegiati (cast any per client non rigenerato)
+  const visible = isPrivileged ? items : items.filter(i => !Boolean((i as any)?.restricted));
+
+  return NextResponse.json({ items: visible });
 }
 
 export async function POST(req: Request) {
@@ -49,8 +53,9 @@ export async function POST(req: Request) {
         brand, model, name, typology,
         sku, quantity: Number(quantity) || 0,
         description, imageUrl,
+        restricted: Boolean(restricted),
         categoryId: Number(categoryId),
-      },
+      } as any, // in caso di client non rigenerato
       include: { category: true },
     });
     console.log('Item created successfully:', item.id);

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { sendNotification } from "@/lib/mailer";
 import { getSession } from "@/lib/auth";
 
+const hasRestrictedTag = (d?: string | null) => typeof d === "string" && d.includes("[PRIVATE]");
+
 export async function POST(req: Request) {
   const session = await getSession();
   
@@ -107,7 +109,7 @@ export async function POST(req: Request) {
         const item = await tx.item.findUnique({ where: { id: lineId } });
         if (!item) throw new Error(`Item ${it.id} not found`);
 
-        const isRestrictedItem = Boolean((item as any)?.restricted); // campo assente nello schema: fallback
+        const isRestrictedItem = Boolean((item as any).restricted);
         if (isRestrictedItem && !["ADMIN", "TECH"].includes(session.role)) {
           throw new Error(`Operazione non consentita su articolo riservato (${item.name || (item as any).brand || (item as any).model || item.id})`);
         }

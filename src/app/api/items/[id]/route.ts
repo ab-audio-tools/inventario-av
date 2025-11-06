@@ -43,7 +43,6 @@ export async function PATCH(
       );
     }
 
-    // Verifica esistenza item
     const exists = await prisma.item.findUnique({
       where: { id: itemId }
     });
@@ -55,7 +54,6 @@ export async function PATCH(
       );
     }
 
-    // Costruisci data di update evitando di referenziare campi non tipizzati lato client
     const updateData: any = {
       brand: data.brand || null,
       model: data.model || null,
@@ -64,14 +62,13 @@ export async function PATCH(
       categoryId: Number(data.categoryId),
       sku: data.sku || null,
       quantity: Number(data.quantity) || 0,
-      description: data.description || null,
+      description: data.description ?? exists.description ?? null,
       imageUrl: data.imageUrl || null,
     };
     if (data.restricted !== undefined) {
       updateData.restricted = Boolean(data.restricted);
     }
 
-    // Update con dati validati
     const item = await prisma.item.update({
       where: { id: itemId },
       data: updateData,
