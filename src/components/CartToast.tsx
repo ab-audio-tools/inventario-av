@@ -19,7 +19,7 @@ export default function CartToast() {
   if (!msg) return null;
 
   return (
-    <div className="fixed top-3 right-3 z-[60]">
+    <div className="fixed bottom-3 right-3 z-[60]">
       <div className="rounded-xl bg-light-blue text-white text-sm px-3 py-2 shadow-lg">
         ✓ Aggiunto: <b>{msg.name}</b> × {msg.qty}
       </div>
