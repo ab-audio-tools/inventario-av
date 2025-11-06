@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import SearchBar from "@/components/SearchBar";
 import CategoryFilter from "@/components/CategoryFilter";
 import ItemCard from "@/components/ItemCard";
+import SetCard from "@/components/SetCard";
 
 type Category = { id: number; name: string };
 type Item = {
@@ -19,8 +20,16 @@ type Item = {
   category?: { id: number; name: string } | null;
 };
 
-export default function SearchAndFilter({ categories, allItems }: {
-  categories: Category[]; allItems: Item[];
+type SetDto = {
+  id: number;
+  name: string;
+  imageUrl?: string | null;
+  available: number;
+  items: { itemId: number; qty: number; name?: string | null; brand?: string | null; model?: string | null }[];
+};
+
+export default function SearchAndFilter({ categories, allItems, allSets = [] }: {
+  categories: Category[]; allItems: Item[]; allSets?: SetDto[];
 }) {
   console.log('SearchAndFilter rendering with items:', allItems.length);
   console.log('Items details:', allItems.map(item => ({ id: item.id, name: item.name, brand: item.brand, model: item.model })));
@@ -28,29 +37,27 @@ export default function SearchAndFilter({ categories, allItems }: {
   const [cat, setCat] = useState<"all" | number>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const filtered = useMemo(() => {
+  const filteredItems = useMemo(() => {
     const ql = q.toLowerCase();
     return allItems.filter(it => {
       if (q) {
-        // Search across all string fields
-        const searchFields = [
-          it.brand,
-          it.model,
-          it.name,
-          it.typology,
-          it.sku,
-          it.description,
-        ];
-        const matchesQ = searchFields.some(field => 
-          (field || "").toLowerCase().includes(ql)
-        );
+        const searchFields = [it.brand, it.model, it.name, it.typology, it.sku, it.description];
+        const matchesQ = searchFields.some(field => (field || "").toLowerCase().includes(ql));
         const matchesC = cat === "all" ? true : it.categoryId === cat;
         return matchesQ && matchesC;
       }
-      const matchesC = cat === "all" ? true : it.categoryId === cat;
-      return matchesC;
+      return cat === "all" ? true : it.categoryId === cat;
     });
   }, [q, cat, allItems]);
+
+  const filteredSets = useMemo(() => {
+    const ql = q.toLowerCase();
+    return allSets.filter(s => {
+      if (!q) return true;
+      return s.name.toLowerCase().includes(ql) || 
+        s.items.some(i => (i.name || i.brand || i.model || "").toLowerCase().includes(ql));
+    });
+  }, [q, allSets]);
 
   return (
     <div className="w-full">
@@ -121,17 +128,27 @@ export default function SearchAndFilter({ categories, allItems }: {
 
       {viewMode === "grid" ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-          {filtered.map((it) => (
-            <div key={it.id} className="h-full">
+          {filteredItems.map((it) => (
+            <div key={`item-${it.id}`} className="h-full">
               <ItemCard item={it} />
+            </div>
+          ))}
+          {filteredSets.map((s) => (
+            <div key={`set-${s.id}`} className="h-full">
+              <SetCard set={s} />
             </div>
           ))}
         </div>
       ) : (
         <div className="flex flex-col gap-3 mt-4">
-          {filtered.map((it) => (
-            <div key={it.id}>
+          {filteredItems.map((it) => (
+            <div key={`item-${it.id}`}>
               <ItemCard item={it} viewMode="list" />
+            </div>
+          ))}
+          {filteredSets.map((s) => (
+            <div key={`set-${s.id}`}>
+              <SetCard set={s} />
             </div>
           ))}
         </div>

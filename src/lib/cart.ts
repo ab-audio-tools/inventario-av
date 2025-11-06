@@ -1,4 +1,4 @@
-export type CartLine = { id: number; name: string; qty: number; imageUrl?: string | null };
+export type CartLine = { id: number; name: string; qty: number; imageUrl?: string | null; type?: "item" | "set" };
 
 const KEY = "cart";
 
@@ -11,6 +11,7 @@ function safeParse(raw: string | null): CartLine[] {
           name: String(l.name ?? ""),
           qty: Math.max(0, Number(l.qty) || 0),
           imageUrl: l.imageUrl ?? null,
+          type: (l.type === "set" ? "set" : "item") as "item" | "set",
         }))
       : [];
   } catch {
@@ -27,8 +28,8 @@ export function writeCart(lines: CartLine[]) {
   localStorage.setItem(KEY, JSON.stringify(lines));
 }
 
-export function qtyFor(id: number): number {
-  return readCart().filter((l) => l.id === id).reduce((a, l) => a + (Number(l.qty) || 0), 0);
+export function qtyFor(id: number, type: "item" | "set" = "item"): number {
+  return readCart().filter((l) => l.id === id && (l.type || "item") === type).reduce((a, l) => a + (Number(l.qty) || 0), 0);
 }
 
 export function cartCount(): number {
@@ -36,20 +37,21 @@ export function cartCount(): number {
 }
 
 function mergeById(lines: CartLine[]): CartLine[] {
-  const map = new Map<number, CartLine>();
+  const map = new Map<string, CartLine>();
   for (const l of lines) {
-    const prev = map.get(l.id);
-    map.set(l.id, prev ? { ...prev, qty: (prev.qty || 0) + (l.qty || 0), name: l.name || prev.name, imageUrl: l.imageUrl ?? prev.imageUrl } : { ...l });
+    const key = `${l.type || "item"}-${l.id}`;
+    const prev = map.get(key);
+    map.set(key, prev ? { ...prev, qty: (prev.qty || 0) + (l.qty || 0), name: l.name || prev.name, imageUrl: l.imageUrl ?? prev.imageUrl } : { ...l });
   }
   return Array.from(map.values());
 }
 
 /** Cap globale (una tantum o ricorrente) al massimo consentito per quell'id */
-export function ensureMax(id: number, max: number) {
+export function ensureMax(id: number, max: number, type: "item" | "set" = "item") {
   const lines = readCart();
   let changed = false;
   const next = lines.map((l) => {
-    if (l.id !== id) return l;
+    if (l.id !== id || (l.type || "item") !== type) return l;
     const q = Math.min(Math.max(0, l.qty || 0), Math.max(0, max));
     if (q !== l.qty) changed = true;
     return { ...l, qty: q };
@@ -75,21 +77,21 @@ export function addToCartMerge(line: CartLine, max?: number) {
   emitCartAdded(line);
 }
 
-export function setQty(id: number, qty: number) {
+export function setQty(id: number, qty: number, type: "item" | "set" = "item") {
   const lines = readCart();
   const nextQty = Math.max(0, Math.floor(Number(qty) || 0));
 
   // rimuovi se 0, altrimenti imposta esattamente la qty
-  const idx = lines.findIndex(l => l.id === id);
+  const idx = lines.findIndex(l => l.id === id && (l.type || "item") === type);
   let next: CartLine[];
   if (nextQty <= 0) {
-    next = idx >= 0 ? lines.filter(l => l.id !== id) : lines;
+    next = idx >= 0 ? lines.filter(l => !(l.id === id && (l.type || "item") === type)) : lines;
   } else {
     if (idx >= 0) {
       next = [...lines];
       next[idx] = { ...next[idx], qty: nextQty };
     } else {
-      next = [...lines, { id, name: "", qty: nextQty }];
+      next = [...lines, { id, name: "", qty: nextQty, type }];
     }
   }
 
@@ -97,12 +99,12 @@ export function setQty(id: number, qty: number) {
   emitCartChange();
 }
 
-export function inc(id: number, delta: number, max?: number) {
-  const current = qtyFor(id);
+export function inc(id: number, delta: number, max?: number, type: "item" | "set" = "item") {
+  const current = qtyFor(id, type);
   let next = current + (Number(delta) || 0);
   if (typeof max === "number") next = Math.min(Math.max(0, next), Math.max(0, max));
   if (next === current) return; // niente da fare
-  setQty(id, next);
+  setQty(id, next, type);
 }
 
 export function removeCartIndex(idx: number) {
