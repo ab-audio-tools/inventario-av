@@ -11,7 +11,8 @@
     "seed": "tsx prisma/seed.ts",
     "migrate": "node scripts/migrate.js",
     "clean": "rm -rf build",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "reset-sequences": "tsx scripts/reset-sequences.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
