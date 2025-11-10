@@ -7,7 +7,14 @@ export async function GET() {
   const isPrivileged = !!session && (session.role === "ADMIN" || session.role === "TECH");
 
   const items = await prisma.item.findMany({
-    include: { category: true },
+    include: { 
+      category: true,
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -32,6 +39,7 @@ export async function POST(req: Request) {
     description = null,
     imageUrl = null,
     restricted = false,
+    tagIds = [],
   } = data || {};
 
   // Validazioni base
@@ -55,8 +63,20 @@ export async function POST(req: Request) {
         description, imageUrl,
         restricted: Boolean(restricted),
         categoryId: Number(categoryId),
+        tags: {
+          create: (tagIds as number[]).map((tagId: number) => ({
+            tag: { connect: { id: tagId } },
+          })),
+        },
       } as any, // in caso di client non rigenerato
-      include: { category: true },
+      include: { 
+        category: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
     console.log('Item created successfully:', item.id);
     return NextResponse.json({ item });

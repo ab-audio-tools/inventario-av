@@ -15,6 +15,7 @@ type Item = {
   quantity: number;
   category?: { id: number; name: string } | null;
   restricted?: boolean;
+  tags?: { tag: { id: number; name: string; color: string | null } }[];
 };
 
 type Props = {
@@ -35,8 +36,10 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
     description: item.description ?? "",
     imageUrl: item.imageUrl ?? "",
     restricted: Boolean(item.restricted ?? false),
+    tagIds: item.tags?.map(t => t.tag.id) ?? [],
   });
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [tags, setTags] = useState<{ id: number; name: string; color: string | null }[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -52,11 +55,16 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
       description: item.description ?? "",
       imageUrl: item.imageUrl ?? "",
       restricted: Boolean(item.restricted ?? false),
+      tagIds: item.tags?.map(t => t.tag.id) ?? [],
     });
     fetch("/api/categories")
       .then((r) => r.json())
       .then((d) => setCategories(d.categories || []))
       .catch(() => setCategories([]));
+    fetch("/api/tags")
+      .then((r) => r.json())
+      .then((d) => setTags(d.tags || []))
+      .catch(() => setTags([]));
   }, [isOpen, item]);
 
   useEffect(() => {
@@ -90,6 +98,7 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
           description: form.description || null,
           imageUrl: form.imageUrl || null,
           restricted: Boolean(form.restricted),
+          tagIds: form.tagIds,
         }),
       });
       const data = await res.json();
@@ -203,6 +212,39 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
                   : form.name || undefined
               }
             />
+          </div>
+
+          <div>
+            <label className="text-sm text-zinc-600 mb-2 block">Tag</label>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => {
+                const isSelected = form.tagIds.includes(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setForm({ ...form, tagIds: form.tagIds.filter(id => id !== tag.id) });
+                      } else {
+                        setForm({ ...form, tagIds: [...form.tagIds, tag.id] });
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
+                      isSelected
+                        ? "text-white"
+                        : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                    }`}
+                    style={isSelected ? { backgroundColor: tag.color || "#6b7280" } : undefined}
+                  >
+                    {isSelected ? "✓ " : ""}{tag.name}
+                  </button>
+                );
+              })}
+              {tags.length === 0 && (
+                <p className="text-sm text-zinc-500">Nessun tag disponibile. <a href="/tags" className="text-blue-600 hover:underline">Crea nuovi tag</a></p>
+              )}
+            </div>
           </div>
 
           <div>

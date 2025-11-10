@@ -69,10 +69,34 @@ export async function PATCH(
       updateData.restricted = Boolean(data.restricted);
     }
 
+    // Gestione tag
+    if (data.tagIds !== undefined) {
+      // Elimina i tag esistenti e crea i nuovi
+      await prisma.itemTag.deleteMany({
+        where: { itemId },
+      });
+      
+      if (data.tagIds.length > 0) {
+        await prisma.itemTag.createMany({
+          data: data.tagIds.map((tagId: number) => ({
+            itemId,
+            tagId,
+          })),
+        });
+      }
+    }
+
     const item = await prisma.item.update({
       where: { id: itemId },
       data: updateData,
-      include: { category: true },
+      include: { 
+        category: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({ item });

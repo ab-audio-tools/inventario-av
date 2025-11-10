@@ -15,6 +15,14 @@ model Category {
   sets  Set[]   // relazione inversa verso Set (necessaria per Prisma)
 }
 
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  color     String?   // colore hex per visualizzazione (es. #3b82f6)
+  createdAt DateTime  @default(now())
+  items     ItemTag[]
+}
+
 model Item {
   id           Int           @id @default(autoincrement())
   brand        String?
@@ -32,6 +40,16 @@ model Item {
   category     Category      @relation(fields: [categoryId], references: [id])
   setItems     SetItem[]
   transactions Transaction[]
+  tags         ItemTag[]
+}
+
+model ItemTag {
+  itemId Int
+  tagId  Int
+  item   Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, tagId])
 }
 
 model Set {

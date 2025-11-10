@@ -4,6 +4,7 @@ import ImageUploader from "@/components/ImageUploader";
 
 export default function NewItemPage() {
   const [categories, setCategories] = useState<any[]>([]);
+  const [tags, setTags] = useState<{ id: number; name: string; color: string | null }[]>([]);
   const [form, setForm] = useState({
     brand: "",
     model: "",
@@ -15,11 +16,14 @@ export default function NewItemPage() {
     description: "",
     imageUrl: "", // se già carichi su /public/uploads, metti qui il path
     restricted: false,
+    tagIds: [] as number[],
   });
 
   useEffect(() => {
     // carica categorie
     fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.categories || []));
+    // carica tag
+    fetch("/api/tags").then(r => r.json()).then(d => setTags(d.tags || []));
   }, []);
 
   const validTitle = useMemo(() => {
@@ -46,6 +50,7 @@ export default function NewItemPage() {
         ...form,
         categoryId: Number(form.categoryId || 0),
         quantity: Number(form.quantity || 0),
+        tagIds: form.tagIds,
       }),
     });
     const data = await res.json();
@@ -136,6 +141,39 @@ export default function NewItemPage() {
     }
   />
 </div>
+
+        <div>
+          <label className="text-sm text-zinc-600 mb-2 block">Tag</label>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => {
+              const isSelected = form.tagIds.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => {
+                    if (isSelected) {
+                      setForm({ ...form, tagIds: form.tagIds.filter(id => id !== tag.id) });
+                    } else {
+                      setForm({ ...form, tagIds: [...form.tagIds, tag.id] });
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
+                    isSelected
+                      ? "text-white"
+                      : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                  }`}
+                  style={isSelected ? { backgroundColor: tag.color || "#6b7280" } : undefined}
+                >
+                  {isSelected ? "✓ " : ""}{tag.name}
+                </button>
+              );
+            })}
+            {tags.length === 0 && (
+              <p className="text-sm text-zinc-500">Nessun tag disponibile. <a href="/tags" className="text-blue-600 hover:underline">Crea nuovi tag</a></p>
+            )}
+          </div>
+        </div>
 
         <div>
           <label className="text-sm text-zinc-600">Descrizione</label>

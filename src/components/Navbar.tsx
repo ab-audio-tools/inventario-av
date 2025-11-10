@@ -42,6 +42,7 @@ export default function Navbar() {
   const canAccessTransactions = !!user && user.role !== "GUEST"; // i guest non vedono Movimenti
   const canAccessImportExport = user?.role === "ADMIN" || user?.role === "TECH" || user?.role === "OFFICE";
   const canAccessCategories = user?.role === "ADMIN" || user?.role === "TECH";
+  const canAccessTags = user?.role === "ADMIN" || user?.role === "TECH";
 
   const showCart = !!user && user.role !== "GUEST";
 
@@ -57,7 +58,10 @@ export default function Navbar() {
             </>
           )}
           {canAccessCategories && (
-            <Link href="/categories" className="text-sm text-zinc-700 hover:text-black transition">Gestione Categorie</Link>
+            <>
+              <Link href="/categories" className="text-sm text-zinc-700 hover:text-black transition">Categorie</Link>
+              <Link href="/tags" className="text-sm text-zinc-700 hover:text-black transition">Tag</Link>
+            </>
           )}
           {canAccessTransactions && (
             <Link href="/transactions" className="text-sm text-zinc-700 hover:text-black transition">Movimenti</Link>

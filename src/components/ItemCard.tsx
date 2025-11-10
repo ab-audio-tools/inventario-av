@@ -16,6 +16,7 @@ type Item = {
   imageUrl?: string | null;
   quantity: number;
   category?: { id: number; name: string } | null;
+  tags?: { tag: { id: number; name: string; color: string | null } }[];
 };
 
 export default function ItemCard({ item, viewMode = "grid", allSets }: { item: Item; viewMode?: "grid" | "list"; allSets?: any[] }) {
@@ -125,6 +126,20 @@ export default function ItemCard({ item, viewMode = "grid", allSets }: { item: I
             {item.typology ? `${item.typology} · ` : ""}
             {item.category?.name ?? "—"}
           </div>
+          {/* Tag nella vista lista */}
+          {item.tags && item.tags.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {item.tags.map(({ tag }) => (
+                <span
+                  key={tag.id}
+                  className="text-xs px-2 py-0.5 rounded-full text-white font-medium"
+                  style={{ backgroundColor: tag.color || "#6b7280" }}
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Quantity, Selector, Remove */}
@@ -363,6 +378,21 @@ export default function ItemCard({ item, viewMode = "grid", allSets }: { item: I
                 Rimuovi
               </button>
             )}
+          </div>
+        )}
+
+        {/* Tag */}
+        {item.tags && item.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {item.tags.map(({ tag }) => (
+              <span
+                key={tag.id}
+                className="text-xs px-2 py-0.5 rounded-full text-white font-medium"
+                style={{ backgroundColor: tag.color || "#6b7280" }}
+              >
+                {tag.name}
+              </span>
+            ))}
           </div>
         )}
       </div>
