@@ -6,7 +6,16 @@ import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic"; // evita cache server-side in produzione, mostra sempre dati aggiornati
 
-type ItemWithCategory = Prisma.ItemGetPayload<{ include: { category: true } }>;
+type ItemWithCategory = Prisma.ItemGetPayload<{ 
+  include: { 
+    category: true;
+    tags: {
+      include: {
+        tag: true;
+      };
+    };
+  } 
+}>;
 
 type SetDto = {
   id: number;
@@ -25,7 +34,14 @@ export default async function Page() {
 
   const [items, categories]: [ItemWithCategory[], CategoryModel[]] = await Promise.all([
     prisma.item.findMany({
-      include: { category: true },
+      include: { 
+        category: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),

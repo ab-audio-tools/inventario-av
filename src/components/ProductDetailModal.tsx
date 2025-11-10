@@ -12,6 +12,7 @@ type Item = {
   imageUrl?: string | null;
   quantity: number;
   category?: { id: number; name: string } | null;
+  tags?: { tag: { id: number; name: string; color: string | null } }[];
 };
 
 type Props = {
@@ -131,6 +132,22 @@ export default function ProductDetailModal({ item, isOpen, onClose }: Props) {
                 <div>
                   <label className="text-xs text-zinc-500 uppercase tracking-wide">Categoria</label>
                   <p className="text-sm mt-1">{item.category.name}</p>
+                </div>
+              )}
+              {item.tags && item.tags.length > 0 && (
+                <div>
+                  <label className="text-xs text-zinc-500 uppercase tracking-wide">Tag</label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {item.tags.map(({ tag }) => (
+                      <span
+                        key={tag.id}
+                        className="text-xs px-2 py-0.5 rounded-full text-white font-medium"
+                        style={{ backgroundColor: tag.color || "#6b7280" }}
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
               <div>
