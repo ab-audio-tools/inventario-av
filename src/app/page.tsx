@@ -3,6 +3,7 @@ import SearchAndFilter from "@/components/SearchAndFilter";
 import { prisma } from "@/lib/prisma";
 import type { Prisma, Category as CategoryModel } from "@prisma/client";
 import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic"; // evita cache server-side in produzione, mostra sempre dati aggiornati
 
@@ -30,6 +31,12 @@ type SetDto = {
 export default async function Page() {
   console.log('Loading page data...');
   const session = await getSession();
+  
+  // Se nessun utente è loggato, reindirizza al login
+  if (!session) {
+    redirect("/login");
+  }
+  
   const isPrivileged = !!session && (session.role === "ADMIN" || session.role === "TECH");
 
   const [items, categories]: [ItemWithCategory[], CategoryModel[]] = await Promise.all([
