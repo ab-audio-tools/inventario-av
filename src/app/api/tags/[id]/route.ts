@@ -4,10 +4,11 @@ import { prisma } from "@/lib/prisma";
 // DELETE /api/tags/[id] - Elimina un tag
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tagId = parseInt(params.id);
+    const { id } = await params;
+    const tagId = parseInt(id);
 
     if (isNaN(tagId)) {
       return NextResponse.json({ error: "ID non valido" }, { status: 400 });
@@ -30,10 +31,11 @@ export async function DELETE(
 // PATCH /api/tags/[id] - Modifica un tag
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tagId = parseInt(params.id);
+    const { id } = await params;
+    const tagId = parseInt(id);
 
     if (isNaN(tagId)) {
       return NextResponse.json({ error: "ID non valido" }, { status: 400 });
