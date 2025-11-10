@@ -13,6 +13,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   useEffect(() => {
     loadCategories();
@@ -63,6 +64,54 @@ export default function CategoriesPage() {
     }
   }
 
+  async function handleDeleteCategory(id: number) {
+    if (!confirm("Sei sicuro di voler eliminare questa categoria?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/categories/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Errore durante l'eliminazione");
+        return;
+      }
+
+      loadCategories();
+    } catch (error) {
+      alert("Errore di connessione");
+    }
+  }
+
+  async function handleUpdateCategory(category: Category) {
+    if (!category.name.trim()) {
+      alert("Il nome della categoria non può essere vuoto");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/categories/${category.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: category.name }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Errore durante l'aggiornamento");
+        return;
+      }
+
+      setEditingCategory(null);
+      loadCategories();
+    } catch (error) {
+      alert("Errore di connessione");
+    }
+  }
+
   if (loading) {
     return (
       <PageFade>
@@ -107,14 +156,64 @@ export default function CategoriesPage() {
                 <tr>
                   <th className="text-left p-3">Nome Categoria</th>
                   <th className="text-right p-3">Articoli</th>
+                  <th className="text-right p-3">Azioni</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((cat) => (
                   <tr key={cat.id} className="border-t hover:bg-gray-50">
-                    <td className="p-3 font-medium">{cat.name}</td>
+                    <td className="p-3">
+                      {editingCategory?.id === cat.id ? (
+                        <input
+                          type="text"
+                          value={editingCategory.name}
+                          onChange={(e) =>
+                            setEditingCategory({ ...editingCategory, name: e.target.value })
+                          }
+                          className="border rounded-xl px-3 py-2 w-full font-medium"
+                          autoFocus
+                        />
+                      ) : (
+                        <span className="font-medium">{cat.name}</span>
+                      )}
+                    </td>
                     <td className="p-3 text-right text-zinc-600">
                       {cat._count?.items ?? 0}
+                    </td>
+                    <td className="p-3 text-right">
+                      {editingCategory?.id === cat.id ? (
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => handleUpdateCategory(editingCategory)}
+                            className="text-emerald-600 hover:underline text-sm font-medium"
+                          >
+                            Salva
+                          </button>
+                          <button
+                            onClick={() => setEditingCategory(null)}
+                            className="text-zinc-600 hover:underline text-sm"
+                          >
+                            Annulla
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => setEditingCategory(cat)}
+                            className="text-blue-600 hover:underline text-sm"
+                          >
+                            Modifica
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(cat.id)}
+                            className="text-red-600 hover:underline text-sm"
+                            disabled={(cat._count?.items ?? 0) > 0}
+                            title={(cat._count?.items ?? 0) > 0 ? "Non puoi eliminare una categoria con articoli associati" : "Elimina categoria"}
+                          >
+                            Elimina
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
