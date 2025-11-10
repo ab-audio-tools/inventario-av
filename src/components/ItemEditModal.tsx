@@ -193,7 +193,16 @@ export default function ItemEditModal({ item, isOpen, onClose }: Props) {
           </div>
 
           <div>
-            <ImageUploader label="Immagine articolo" value={form.imageUrl} onUploaded={(url) => setForm({ ...form, imageUrl: url })} />
+            <ImageUploader 
+              label="Immagine articolo" 
+              value={form.imageUrl} 
+              onUploaded={(url) => setForm({ ...form, imageUrl: url })} 
+              searchQuery={
+                form.brand && form.model 
+                  ? `${form.brand} ${form.model}` 
+                  : form.name || undefined
+              }
+            />
           </div>
 
           <div>

@@ -1,17 +1,21 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import ImageWebSearch from "./ImageWebSearch";
 
 type Props = {
   value?: string;
   onUploaded: (url: string) => void;
   label?: string;
   maxSizeMB?: number;
+  searchQuery?: string; // Brand + Model o Name per la ricerca web
 };
 
-export default function ImageUploader({ value, onUploaded, label = "Immagine", maxSizeMB = 10 }: Props) {
+export default function ImageUploader({ value, onUploaded, label = "Immagine", maxSizeMB = 10, searchQuery }: Props) {
   const [drag, setDrag] = useState(false);
   const [preview, setPreview] = useState<string | null>(value || null);
   const [uploading, setUploading] = useState(false);
+  const [showWebSearch, setShowWebSearch] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Controlla se Cloudinary è configurato
@@ -89,11 +93,23 @@ export default function ImageUploader({ value, onUploaded, label = "Immagine", m
     <div className="w-full">
       <div className="flex items-center justify-between">
         {label && <label className="text-sm text-zinc-600">{label}</label>}
-        {useCloudinary && (
-          <span className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
-            ☁️ Cloudinary
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setShowWebSearch(true)}
+              className="text-xs px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors font-medium"
+              disabled={uploading}
+            >
+              🔍 Cerca sul web
+            </button>
+          )}
+          {useCloudinary && (
+            <span className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
+              ☁️ Cloudinary
+            </span>
+          )}
+        </div>
       </div>
 
       <div
@@ -146,6 +162,18 @@ export default function ImageUploader({ value, onUploaded, label = "Immagine", m
           onChange={(e) => onFiles(e.target.files)}
         />
       </div>
+
+      {showWebSearch && searchQuery && createPortal(
+        <ImageWebSearch
+          searchQuery={searchQuery}
+          onImageSelected={(url) => {
+            setPreview(url);
+            onUploaded(url);
+          }}
+          onClose={() => setShowWebSearch(false)}
+        />,
+        document.body
+      )}
     </div>
   );
 }

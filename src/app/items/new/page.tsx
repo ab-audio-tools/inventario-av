@@ -129,6 +129,11 @@ export default function NewItemPage() {
     label="Immagine articolo"
     value={form.imageUrl}
     onUploaded={(url) => setForm({ ...form, imageUrl: url })}
+    searchQuery={
+      form.brand && form.model 
+        ? `${form.brand} ${form.model}` 
+        : form.name || undefined
+    }
   />
 </div>
 
