@@ -6,6 +6,7 @@ import ItemCard from "@/components/ItemCard";
 import SetCard from "@/components/SetCard";
 
 type Category = { id: number; name: string };
+type Tag = { id: number; name: string; color: string | null };
 type Item = {
   id: number;
   brand?: string | null;
@@ -18,6 +19,7 @@ type Item = {
   quantity: number;
   categoryId: number;
   category?: { id: number; name: string } | null;
+  tags?: { tag: Tag }[];
 };
 
 type SetDto = {
@@ -39,6 +41,7 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
   const [cat, setCat] = useState<"all" | number>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"category" | "tag" | "name-asc" | "name-desc">("category");
 
   useEffect(() => {
     fetch("/api/auth/session")
@@ -79,11 +82,94 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
     });
   }, [q, allSets, userRole, cat]);
 
+  // Ordinamento items e sets
+  const sortedItems = useMemo(() => {
+    const items = [...filteredItems];
+    
+    switch (sortBy) {
+      case "category":
+        return items.sort((a, b) => {
+          const catA = a.category?.name || "";
+          const catB = b.category?.name || "";
+          if (catA !== catB) return catA.localeCompare(catB);
+          // Stesso category, ordina per nome
+          const nameA = a.name || a.brand || a.model || "";
+          const nameB = b.name || b.brand || b.model || "";
+          return nameA.localeCompare(nameB);
+        });
+        
+      case "tag":
+        return items.sort((a, b) => {
+          const tagA = a.tags?.[0]?.tag.name || "zzz"; // tag senza vanno alla fine
+          const tagB = b.tags?.[0]?.tag.name || "zzz";
+          if (tagA !== tagB) return tagA.localeCompare(tagB);
+          // Stesso tag, ordina per nome
+          const nameA = a.name || a.brand || a.model || "";
+          const nameB = b.name || b.brand || b.model || "";
+          return nameA.localeCompare(nameB);
+        });
+        
+      case "name-asc":
+        return items.sort((a, b) => {
+          const nameA = a.name || a.brand || a.model || "";
+          const nameB = b.name || b.brand || b.model || "";
+          return nameA.localeCompare(nameB);
+        });
+        
+      case "name-desc":
+        return items.sort((a, b) => {
+          const nameA = a.name || a.brand || a.model || "";
+          const nameB = b.name || b.brand || b.model || "";
+          return nameB.localeCompare(nameA);
+        });
+        
+      default:
+        return items;
+    }
+  }, [filteredItems, sortBy]);
+
+  const sortedSets = useMemo(() => {
+    // I set seguono lo stesso ordinamento (solo per categoria e nome)
+    const sets = [...filteredSets];
+    
+    switch (sortBy) {
+      case "category":
+        return sets.sort((a, b) => {
+          const catA = categories.find(c => c.id === a.categoryId)?.name || "";
+          const catB = categories.find(c => c.id === b.categoryId)?.name || "";
+          if (catA !== catB) return catA.localeCompare(catB);
+          return a.name.localeCompare(b.name);
+        });
+        
+      case "name-asc":
+        return sets.sort((a, b) => a.name.localeCompare(b.name));
+        
+      case "name-desc":
+        return sets.sort((a, b) => b.name.localeCompare(a.name));
+        
+      default:
+        return sets;
+    }
+  }, [filteredSets, sortBy, categories]);
+
   return (
     <div className="w-full">
-      <div className="flex gap-2 items-center">
+      <div className="flex gap-2 items-center mb-3">
         <SearchBar onChange={setQ} />
         <CategoryFilter categories={categories} value={cat} onChange={setCat} />
+        
+        {/* Selettore ordinamento */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as any)}
+          className="border rounded-xl px-3 py-2 bg-white text-sm shrink-0 h-10"
+        >
+          <option value="category">Ordina per Categoria</option>
+          <option value="tag">Ordina per Tag</option>
+          <option value="name-asc">Nome A → Z</option>
+          <option value="name-desc">Nome Z → A</option>
+        </select>
+        
         <div className="flex gap-1 border rounded-xl overflow-hidden shrink-0 h-10 items-stretch">
           <button
             type="button"
@@ -147,45 +233,17 @@ export default function SearchAndFilter({ categories, allItems, allSets = [] }: 
       </div>
 
       <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-3" : "space-y-2 py-2"}>
-        {filteredItems.map((it) => (
+        {sortedItems.map((it) => (
           <div key={`item-${it.id}`} className="h-full">
             <ItemCard item={it} viewMode={viewMode} allSets={allSets} />
           </div>
         ))}
-        {filteredSets.map((s) => (
+        {sortedSets.map((s) => (
           <div key={`set-${s.id}`} className="h-full">
             <SetCard set={s} userRole={userRole} />
           </div>
         ))}
       </div>
-
-      {/* {viewMode === "grid" ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 py-3">
-          {filteredItems.map((it) => (
-            <div key={`item-${it.id}`} className="h-full">
-              <ItemCard item={it} />
-            </div>
-          ))}
-          {filteredSets.map((s) => (
-            <div key={`set-${s.id}`} className="h-full">
-              <SetCard set={s} userRole={userRole} />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3 mt-4">
-          {filteredItems.map((it) => (
-            <div key={`item-${it.id}`}>
-              <ItemCard item={it} viewMode="list" />
-            </div>
-          ))}
-          {filteredSets.map((s) => (
-            <div key={`set-${s.id}`}>
-              <SetCard set={s} userRole={userRole} />
-            </div>
-          ))}
-        </div>
-      )} */}
     </div>
   );
 }
