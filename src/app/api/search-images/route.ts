@@ -30,8 +30,18 @@ export async function GET(req: NextRequest) {
 
     if (!response.ok) {
       console.error("Google Search API error:", data);
+      
+      // Messaggio più specifico per errori comuni
+      let errorMessage = data.error?.message || "Errore nella ricerca";
+      
+      if (data.error?.message?.includes("not found")) {
+        errorMessage = "Il motore di ricerca personalizzato non è stato trovato. Verifica il GOOGLE_SEARCH_ENGINE_ID nel file .env";
+      } else if (data.error?.status === "INVALID_ARGUMENT") {
+        errorMessage = "Configurazione API non valida. Verifica GOOGLE_API_KEY e GOOGLE_SEARCH_ENGINE_ID nel file .env";
+      }
+      
       return NextResponse.json(
-        { error: data.error?.message || "Errore nella ricerca" },
+        { error: errorMessage },
         { status: response.status }
       );
     }
