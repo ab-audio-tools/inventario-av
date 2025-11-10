@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Query mancante" }, { status: 400 });
     }
 
+    console.log("🔍 Search Images API called with query:", query);
+    console.log("📊 GOOGLE_API_KEY present:", !!GOOGLE_API_KEY, "length:", GOOGLE_API_KEY?.length || 0);
+    console.log("📊 GOOGLE_SEARCH_ENGINE_ID:", GOOGLE_CX || "NOT_SET");
+
     // Se non ci sono le credenziali Google, usa un fallback
     if (!GOOGLE_API_KEY || !GOOGLE_CX) {
       console.warn("Google API non configurata, usando fallback");
@@ -25,11 +29,15 @@ export async function GET(req: NextRequest) {
     // Chiamata a Google Custom Search API
     const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX}&q=${encodeURIComponent(query)}&searchType=image&num=10&imgSize=medium&safe=active`;
 
+    console.log("🌐 Calling Google Custom Search API...");
     const response = await fetch(searchUrl);
     const data = await response.json();
 
+    console.log("📨 Google API response status:", response.status);
+    console.log("📨 Google API response data:", JSON.stringify(data, null, 2));
+
     if (!response.ok) {
-      console.error("Google Search API error:", data);
+      console.error("❌ Google Search API error:", data);
       
       // Messaggio più specifico per errori comuni
       let errorMessage = data.error?.message || "Errore nella ricerca";
